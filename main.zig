@@ -21,6 +21,11 @@ fn hexDigits(dest: []u8, src: []const u8) -> []u8 {
     return dest[0..src.len / 2 ];
 }
 
+fn fixed_xor(dest: []u8, src: []const u8, src2: []const u8) -> []u8 {
+    for (src) |c, i| dest[i] = c ^ src2[i];
+    dest[0..]
+}
+
 test "cryptopals 1" {
     const src = "49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d";
     const expected_output_raw = "I'm killing your brain like a poisonous mushroom";
@@ -34,5 +39,23 @@ test "cryptopals 1" {
 
     assert(mem.eql(u8, expected_output_raw, output_raw));
     assert(mem.eql(u8, expected_output_base64, output_base64));
+}
+
+test "cryptopals 2" {
+    const src = "1c0111001f010100061a024b53535009181c";
+    var hexed:[src.len]u8 = undefined;
+    const output_raw = hexDigits(hexed[0..], src[0..]);
+
+    const src2 = "686974207468652062756c6c277320657965";
+    var hexed2:[src.len]u8 = undefined;
+    const output_raw2 = hexDigits(hexed2[0..], src2[0..]);
+
+    const expstr = "746865206b696420646f6e277420706c6179";
+    var hexed3:[src.len]u8 = undefined;
+    const exp = hexDigits(hexed3[0..], expstr[0..]);
+
+    var dest:[src.len]u8 = undefined;
+    const out = fixed_xor(dest[0..], hexed[0..], hexed2[0..]);
+    assert(mem.eql(u8, exp[0..18], out[0..18]));
 }
 
