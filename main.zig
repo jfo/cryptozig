@@ -43,19 +43,23 @@ test "cryptopals 1" {
 
 test "cryptopals 2" {
     const src = "1c0111001f010100061a024b53535009181c";
-    var hexed:[src.len]u8 = undefined;
+    const src2 = "686974207468652062756c6c277320657965";
+
+    const expected_output_str = "746865206b696420646f6e277420706c6179";
+    const expected_output_raw = "the kid don't play";
+
+    var hexed:[src.len / 2]u8 = undefined;
     const output_raw = hexDigits(hexed[0..], src[0..]);
 
-    const src2 = "686974207468652062756c6c277320657965";
-    var hexed2:[src.len]u8 = undefined;
+    var hexed2:[hexed.len]u8 = undefined;
     const output_raw2 = hexDigits(hexed2[0..], src2[0..]);
 
-    const expstr = "746865206b696420646f6e277420706c6179";
-    var hexed3:[src.len]u8 = undefined;
-    const exp = hexDigits(hexed3[0..], expstr[0..]);
+    var hexed3:[hexed.len]u8 = undefined;
+    const exp = hexDigits(hexed3[0..], expected_output_str[0..]);
 
-    var dest:[src.len]u8 = undefined;
+    var dest:[hexed.len]u8 = undefined;
     const out = fixed_xor(dest[0..], hexed[0..], hexed2[0..]);
-    assert(mem.eql(u8, exp[0..18], out[0..18]));
+
+    assert(mem.eql(u8, expected_output_raw, out));
 }
 
