@@ -26,7 +26,7 @@ fn fixed_xor(dest: []u8, src: []const u8, src2: []const u8) -> []u8 {
     dest[0..]
 }
 
-test "cryptopals 1" {
+test "Convert hex to base64" {
     const src = "49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d";
     const expected_output_raw = "I'm killing your brain like a poisonous mushroom";
     const expected_output_base64 = "SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t";
@@ -41,7 +41,7 @@ test "cryptopals 1" {
     assert(mem.eql(u8, expected_output_base64, output_base64));
 }
 
-test "cryptopals 2" {
+test "Fixed XOR" {
     const src = "1c0111001f010100061a024b53535009181c";
     const src2 = "686974207468652062756c6c277320657965";
 
