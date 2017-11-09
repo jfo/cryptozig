@@ -21,11 +21,6 @@ fn hexDigits(dest: []u8, src: []const u8) -> []u8 {
     return dest[0..src.len / 2 ];
 }
 
-fn fixed_xor(dest: []u8, src: []const u8, src2: []const u8) -> []u8 {
-    for (src) |c, i| dest[i] = c ^ src2[i];
-    dest[0..]
-}
-
 test "Convert hex to base64" {
     const src = "49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d";
     const expected_output_raw = "I'm killing your brain like a poisonous mushroom";
@@ -39,6 +34,11 @@ test "Convert hex to base64" {
 
     assert(mem.eql(u8, expected_output_raw, output_raw));
     assert(mem.eql(u8, expected_output_base64, output_base64));
+}
+
+fn fixed_xor(dest: []u8, src: []const u8, src2: []const u8) -> []u8 {
+    for (src) |c, i| dest[i] = c ^ src2[i];
+    dest[0..]
 }
 
 test "Fixed XOR" {
@@ -61,5 +61,43 @@ test "Fixed XOR" {
     const out = fixed_xor(dest[0..], hexed[0..], hexed2[0..]);
 
     assert(mem.eql(u8, expected_output_raw, out));
+}
+
+fn one_char_xor(dest: []u8, src: []const u8, c:u8) -> []u8 {
+    for (src) |char, i| dest[i] = char ^ c;
+    dest[0..]
+}
+
+// this naive score function simply counts spaces
+fn scorer(src: []const u8) -> u8 {
+    var count:u8 = 0;
+    for (src) |char| {
+        if (char == 32) {
+            count += 1
+        }
+    }
+    count
+}
+
+test "Single-byte XOR cipher" {
+    const src = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
+    const expected_output = "Cooking MC's like a pound of bacon";
+
+    var hexed:[src.len / 2]u8 = undefined;
+    const src_raw = hexDigits(hexed[0..], src[0..]);
+
+    var i:u8 = 0;
+    var winner:[src.len / 2]u8 = undefined;
+    var dest:[src.len / 2]u8 = undefined;
+
+    while (i < @maxValue(u8)) {
+        var out_xor = one_char_xor(dest[0..], src_raw, i);
+        i+=1;
+        if (scorer(dest) > scorer(winner)) {
+            mem.copy(u8, winner[0..], dest[0..]);
+        }
+    }
+
+    assert(mem.eql(u8, expected_output, winner));
 }
 
