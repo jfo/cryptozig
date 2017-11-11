@@ -1,13 +1,13 @@
 const assert = @import("std").debug.assert;
 const mem = @import("std").mem;
 
-const utils = @import("./utils.zig");
+const cryptopals = @import("./cryptopals.zig");
 const base64 = @import("std").base64;
 
-const hexDigits = utils.hexDigits;
-const one_char_xor = utils.one_char_xor;
-const scorer = utils.scorer;
-const fixed_xor = utils.fixed_xor;
+const hexDigits = cryptopals.hexDigits;
+const one_char_xor = cryptopals.one_char_xor;
+const scorer = cryptopals.scorer;
+const fixed_xor = cryptopals.fixed_xor;
 
 test "Convert hex to base64" {
     const src = "49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d";
