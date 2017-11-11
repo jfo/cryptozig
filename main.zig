@@ -101,3 +101,32 @@ test "Single-byte XOR cipher" {
     assert(mem.eql(u8, expected_output, winner));
 }
 
+const stdio = @cImport(@cInclude("stdio.h"));
+
+test "Detect single-character XOR" {
+    // const x = stdio.printf("djif");
+
+    // const src = "0e3647e8592d35514a081243582536ed3de6734059001e3f535ce6271032";
+    // const expected_output = "Cooking MC's like a pound of bacon";
+
+    // var hexed:[src.len / 2]u8 = undefined;
+    // const src_raw = hexDigits(hexed[0..], src[0..]);
+
+    // var i:u8 = 0;
+    // // var winner:[src.len / 2]u8 = undefined;
+    // var dest:[src.len / 2]u8 = undefined;
+
+    // while (i < @maxValue(u8)) {
+    //     var out_xor = one_char_xor(dest[0..], src_raw, i);
+    //     i+=1;
+    //     // warn("{}", dest);
+    //     // if (scorer(dest) > scorer(winner)) {
+    //     //     mem.copy(u8, winner[0..], dest[0..]);
+    //     // }
+    // }
+
+    // assert(mem.eql(u8, expected_output, winner));
+}
+
+
+
