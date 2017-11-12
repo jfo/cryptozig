@@ -64,7 +64,8 @@ test "Single-byte XOR cipher" {
     assert(mem.eql(u8, expected_output, winner));
 }
 
-test "run Detect single-character XOR" {
+// soooo much could be improved here.
+test "Detect single-character XOR" {
     const expected_output = "Now that the party is jumping";
 
     var inc_allocator = %%std.heap.IncrementingAllocator.init(10 * 1024 * 1024);
@@ -101,4 +102,8 @@ test "run Detect single-character XOR" {
     }
 
     assert(mem.eql(u8, expected_output[0..], winner[0..expected_output.len]))
+}
+
+test "run" {
+
 }

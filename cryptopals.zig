@@ -26,7 +26,6 @@ pub fn one_char_xor(dest: []u8, src: []const u8, c:u8) -> []u8 {
     dest[0..]
 }
 
-
 // scores for both ascii and spaces.
 pub fn scorer(src: []const u8) -> u32 {
     var count:u32 = 0;
