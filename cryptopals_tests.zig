@@ -65,6 +65,8 @@ test "Single-byte XOR cipher" {
 }
 
 test "run Detect single-character XOR" {
+    const expected_output = "Now that the party is jumping";
+
     var inc_allocator = %%std.heap.IncrementingAllocator.init(10 * 1024 * 1024);
     defer inc_allocator.deinit();
     const allocator = &inc_allocator.allocator;
@@ -80,22 +82,28 @@ test "run Detect single-character XOR" {
     const lines = cp.readlines(dest[0..], buf[0..s]);
 
     var buffer: [500]u8 = undefined;
-    warn("\n");
-
+    var winners: [500][]u8 = undefined;
 
     var i:u8 = 0;
+    var wi:u8 = 0;
     while (i < @maxValue(u8)) {
         for (lines) |line| {
             var x = cp.hexDigits(buffer[0..], line);
             var l = cp.one_char_xor(buffer[0..], x, i);
             if (cp.scorer(l) > 4) {
+                // @memcpy(winners[wi], l, l.len);
                 warn("{} ", cp.scorer(l));
                 // cp.printLn(line);
                 warn(" ");
                 cp.printLn(l);
                 warn("\n");
+                wi += 1;
             }
         }
         i += 1;
     }
+    warn("\n");
+    cp.printLn(winners[0]);;
+    warn("\n");
+    cp.printLn(winners[1]);;
 }
