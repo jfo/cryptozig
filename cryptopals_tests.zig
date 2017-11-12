@@ -76,25 +76,23 @@ test "run Detect single-character XOR" {
     const s:usize = %%file.getEndPos();
     _ = file.read(buf[0..s]);
 
-    var dest: [326][]u8 = undefined;
+    var dest: [327][]u8 = undefined;
     const lines = cp.readlines(dest[0..], buf[0..s]);
 
-    var buffer: [50000]u8 = undefined;
+    var buffer: [500]u8 = undefined;
     warn("\n");
 
 
     var i:u8 = 0;
     while (i < @maxValue(u8)) {
-
-        for (lines) |line, idx| cp.one_char_xor(lines[idx], line, i);
-
         for (lines) |line| {
-            var x = cp.hexDigits(buffer[0..line.len], line);
-            if (cp.scorer(x) == 4) {
-                warn("{} ", cp.scorer(x));
-                cp.printLn(line);
+            var x = cp.hexDigits(buffer[0..], line);
+            var l = cp.one_char_xor(buffer[0..], x, i);
+            if (cp.scorer(l) > 4) {
+                warn("{} ", cp.scorer(l));
+                // cp.printLn(line);
                 warn(" ");
-                cp.printLn(x);
+                cp.printLn(l);
                 warn("\n");
             }
         }
