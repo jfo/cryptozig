@@ -49,7 +49,7 @@ pub fn score_ascii(src: []const u8) -> u32 {
 }
 
 pub fn scorer(src: []const u8) -> u32 {
-    score_ascii(src) + score_spaces(src)
+    score_ascii(src) * score_spaces(src)
 }
 
 pub fn printLn(line: []u8) -> void {
