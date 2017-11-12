@@ -58,3 +58,7 @@ pub fn fixed_xor(dest: []u8, src: []const u8, src2: []const u8) -> []u8 {
     for (src) |c, i| dest[i] = c ^ src2[i];
     dest[0..]
 }
+
+pub fn repeating_key_xor(dest: []u8, src: []const u8, key: []const u8) -> void {
+    for (src) |e, i| dest[i] = key[i % key.len] ^ e
+}
