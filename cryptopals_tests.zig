@@ -82,21 +82,21 @@ test "run Detect single-character XOR" {
     const lines = cp.readlines(dest[0..], buf[0..s]);
 
     var buffer: [500]u8 = undefined;
-    var winners: [500][]u8 = undefined;
 
     var i:u8 = 0;
-    var wi:u32 = 0;
+
+    var winner: []u8 = undefined;
+    var last_winner_score:u32 = 0;
     while (i < @maxValue(u8)) {
         for (lines) |line| {
             var x = cp.hexDigits(buffer[0..], line);
             var l = cp.one_char_xor(buffer[0..], x, i);
-            if (cp.scorer(l) > 33) {
+            const score = cp.scorer(l);
+            if (score > last_winner_score) {
+                last_winner_score = score;
+                winner = line;
                 warn("\n");
-                warn("{} ", cp.scorer(l));
-                cp.printLn(line);
-                warn(" ");
-                cp.printLn(l[0..30]);
-                wi += 1;
+                cp.printLn(x);
             }
         }
         i += 1;
