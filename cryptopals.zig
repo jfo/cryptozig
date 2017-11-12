@@ -26,30 +26,18 @@ pub fn one_char_xor(dest: []u8, src: []const u8, c:u8) -> []u8 {
     dest[0..]
 }
 
-// this naive score function simply counts spaces
-pub fn score_spaces(src: []const u8) -> u32 {
-    var count:u32 = 0;
-    for (src) |char| {
-        if (char == 32) {
-            count += 1
-        }
-    }
-    count
-}
 
-// this is a little better, scoring for ascii chars
-pub fn score_ascii(src: []const u8) -> u32 {
-    var count:u32 = 0;
-    for (src) |char| {
-        if (char > ' ' and char < 122) {
-            count += 1
-        }
-    }
-    count
-}
-
+// scores for both ascii and spaces.
 pub fn scorer(src: []const u8) -> u32 {
-    score_ascii(src) * score_spaces(src)
+    var count:u32 = 0;
+    for (src) |char| {
+        count += (switch (char) {
+            ' ' => u32(2),
+            '!'...122 => 1,
+            else => 0,
+        })
+    }
+    count
 }
 
 pub fn printLn(line: []u8) -> void {
