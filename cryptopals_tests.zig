@@ -85,7 +85,7 @@ test "run Detect single-character XOR" {
 
     var i:u8 = 0;
 
-    var winner: []u8 = undefined;
+    var winner: [500]u8 = undefined;
     var last_winner_score:u32 = 0;
     while (i < @maxValue(u8)) {
         for (lines) |line| {
@@ -94,11 +94,11 @@ test "run Detect single-character XOR" {
             const score = cp.scorer(l);
             if (score > last_winner_score) {
                 last_winner_score = score;
-                winner = line;
-                warn("\n");
-                cp.printLn(x);
+                for (l[0..l.len]) |b, idx| winner[idx] = b;
             }
         }
         i += 1;
     }
+
+    assert(mem.eql(u8, expected_output[0..], winner[0..expected_output.len]))
 }
