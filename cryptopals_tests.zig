@@ -1,13 +1,9 @@
-const assert = @import("std").debug.assert;
-const mem = @import("std").mem;
-
-const cryptopals = @import("./cryptopals.zig");
-const base64 = @import("std").base64;
-
-const hexDigits = cryptopals.hexDigits;
-const one_char_xor = cryptopals.one_char_xor;
-const scorer = cryptopals.scorer;
-const fixed_xor = cryptopals.fixed_xor;
+const std = @import("std");
+const assert = std.debug.assert;
+const warn = std.debug.warn;
+const mem = std.mem;
+const base64 = std.base64;
+const cp = @import("./cryptopals.zig");
 
 test "Convert hex to base64" {
     const src = "49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d";
@@ -15,7 +11,7 @@ test "Convert hex to base64" {
     const expected_output_base64 = "SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t";
 
     var dest:[src.len]u8 = undefined;
-    const output_raw = hexDigits(dest[0..], src[0..]);
+    const output_raw = cp.hexDigits(dest[0..], src[0..]);
 
     var dest2:[src.len]u8 = undefined;
     const output_base64 = base64.encode(dest2[0..], output_raw[0..output_raw.len]);
@@ -32,16 +28,16 @@ test "Fixed XOR" {
     const expected_output_raw = "the kid don't play";
 
     var hexed:[src.len / 2]u8 = undefined;
-    const output_raw = hexDigits(hexed[0..], src[0..]);
+    const output_raw = cp.hexDigits(hexed[0..], src[0..]);
 
     var hexed2:[hexed.len]u8 = undefined;
-    const output_raw2 = hexDigits(hexed2[0..], src2[0..]);
+    const output_raw2 = cp.hexDigits(hexed2[0..], src2[0..]);
 
     var hexed3:[hexed.len]u8 = undefined;
-    const exp = hexDigits(hexed3[0..], expected_output_str[0..]);
+    const exp = cp.hexDigits(hexed3[0..], expected_output_str[0..]);
 
     var dest:[hexed.len]u8 = undefined;
-    const out = fixed_xor(dest[0..], hexed[0..], hexed2[0..]);
+    const out = cp.fixed_xor(dest[0..], hexed[0..], hexed2[0..]);
 
     assert(mem.eql(u8, expected_output_raw, out));
 }
@@ -51,16 +47,16 @@ test "Single-byte XOR cipher" {
     const expected_output = "Cooking MC's like a pound of bacon";
 
     var hexed:[src.len / 2]u8 = undefined;
-    const src_raw = hexDigits(hexed[0..], src[0..]);
+    const src_raw = cp.hexDigits(hexed[0..], src[0..]);
 
     var i:u8 = 0;
     var winner:[src.len / 2]u8 = undefined;
     var dest:[src.len / 2]u8 = undefined;
 
     while (i < @maxValue(u8)) {
-        var out_xor = one_char_xor(dest[0..], src_raw, i);
+        var out_xor = cp.one_char_xor(dest[0..], src_raw, i);
         i+=1;
-        if (scorer(dest) > scorer(winner)) {
+        if (cp.scorer(dest) > cp.scorer(winner)) {
             mem.copy(u8, winner[0..], dest[0..]);
         }
     }
@@ -68,5 +64,40 @@ test "Single-byte XOR cipher" {
     assert(mem.eql(u8, expected_output, winner));
 }
 
-test "Detect single-character XOR" {
+test "run Detect single-character XOR" {
+    var inc_allocator = %%std.heap.IncrementingAllocator.init(10 * 1024 * 1024);
+    defer inc_allocator.deinit();
+    const allocator = &inc_allocator.allocator;
+    var file = %%std.io.File.openRead("datafiles/4.txt", allocator);
+    defer file.close();
+
+    var buf: [30000]u8 = undefined;
+
+    const s:usize = %%file.getEndPos();
+    _ = file.read(buf[0..s]);
+
+    var dest: [326][]u8 = undefined;
+    const lines = cp.readlines(dest[0..], buf[0..s]);
+
+    var buffer: [50000]u8 = undefined;
+    warn("\n");
+
+
+    var i:u8 = 0;
+    while (i < @maxValue(u8)) {
+
+        for (lines) |line, idx| cp.one_char_xor(lines[idx], line, i);
+
+        for (lines) |line| {
+            var x = cp.hexDigits(buffer[0..line.len], line);
+            if (cp.scorer(x) == 4) {
+                warn("{} ", cp.scorer(x));
+                cp.printLn(line);
+                warn(" ");
+                cp.printLn(x);
+                warn("\n");
+            }
+        }
+        i += 1;
+    }
 }

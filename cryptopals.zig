@@ -27,8 +27,8 @@ pub fn one_char_xor(dest: []u8, src: []const u8, c:u8) -> []u8 {
 }
 
 // this naive score function simply counts spaces
-pub fn scorer(src: []const u8) -> u8 {
-    var count:u8 = 0;
+pub fn scorer(src: []const u8) -> u32 {
+    var count:u32 = 0;
     for (src) |char| {
         if (char == 32) {
             count += 1
@@ -45,9 +45,9 @@ pub fn readlines(dest: [][]u8, content: []u8) -> [][]u8 {
     var idx1:usize = 0;
     var idx2:usize = 0;
     for (content) |c, i| if (c == '\n') {
-            dest[idx1] = content[idx2..i+1];
-            idx1 += 1;
-            idx2 = i + 1;
+        dest[idx1] = content[idx2..i];
+        idx1 += 1;
+        idx2 = i + 1;
     };
     dest
 }
