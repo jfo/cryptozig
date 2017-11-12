@@ -37,6 +37,17 @@ pub fn scorer(src: []const u8) -> u32 {
     count
 }
 
+// this is a little better, scoring for ascii chars
+pub fn scorechars(src: []const u8) -> u32 {
+    var count:u32 = 0;
+    for (src) |char| {
+        if (char > ' ' and char < 122) {
+            count += 1
+        }
+    }
+    count
+}
+
 pub fn printLn(line: []u8) -> void {
     for (line) |c| warn("{c}", c);
 }

@@ -85,25 +85,21 @@ test "run Detect single-character XOR" {
     var winners: [500][]u8 = undefined;
 
     var i:u8 = 0;
-    var wi:u8 = 0;
+    var wi:u32 = 0;
     while (i < @maxValue(u8)) {
         for (lines) |line| {
             var x = cp.hexDigits(buffer[0..], line);
             var l = cp.one_char_xor(buffer[0..], x, i);
-            if (cp.scorer(l) > 4) {
-                // @memcpy(winners[wi], l, l.len);
+            if (cp.scorechars(l) > 22 and cp.scorer(l) > 4) {
+                warn("\n");
                 warn("{} ", cp.scorer(l));
+                warn(": {} ", cp.scorechars(l));
                 // cp.printLn(line);
                 warn(" ");
-                cp.printLn(l);
-                warn("\n");
+                cp.printLn(l[0..30]);
                 wi += 1;
             }
         }
         i += 1;
     }
-    warn("\n");
-    cp.printLn(winners[0]);;
-    warn("\n");
-    cp.printLn(winners[1]);;
 }
