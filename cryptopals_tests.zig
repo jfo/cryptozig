@@ -90,11 +90,10 @@ test "run Detect single-character XOR" {
         for (lines) |line| {
             var x = cp.hexDigits(buffer[0..], line);
             var l = cp.one_char_xor(buffer[0..], x, i);
-            if (cp.scorechars(l) > 22 and cp.scorer(l) > 4) {
+            if (cp.score_spaces(l) > 4 and cp.score_ascii(l) > 22) {
                 warn("\n");
                 warn("{} ", cp.scorer(l));
-                warn(": {} ", cp.scorechars(l));
-                // cp.printLn(line);
+                cp.printLn(line);
                 warn(" ");
                 cp.printLn(l[0..30]);
                 wi += 1;
