@@ -115,3 +115,27 @@ test "Implement repeating-key XOR" {
     cp.repeating_key_xor(output[0..], src, key);
     assert(mem.eql(u8, expected[0..], output[0..expected.len]));
 }
+
+test "run Break repeating-key XOR" {
+    // var inc_allocator = %%std.heap.IncrementingAllocator.init(10 * 1024 * 1024);
+    // defer inc_allocator.deinit();
+    // const allocator = &inc_allocator.allocator;
+    // var file = %%std.io.File.openRead("datafiles/6.txt", allocator);
+    // defer file.close();
+
+    // var buf: [30000]u8 = undefined;
+
+    // const s:usize = %%file.getEndPos();
+    // _ = file.read(buf[0..s]);
+    // // warn("\n{}\n", buf[0..]);
+
+    // var dest: [64 * 64 * 64]u8 = undefined;
+    // const output= base64.decode(dest[0..], buf[0..]);
+    // warn("\n{}\n", dest[0..]);
+
+    // const x = cp.hamming(14,78);
+    const x = cp.hamming_distance("this is a test", "wokka wokka!!!");
+    warn("\n{}\n", x);
+}
+
+

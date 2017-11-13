@@ -62,3 +62,23 @@ pub fn fixed_xor(dest: []u8, src: []const u8, src2: []const u8) -> []u8 {
 pub fn repeating_key_xor(dest: []u8, src: []const u8, key: []const u8) -> void {
     for (src) |e, i| dest[i] = key[i % key.len] ^ e
 }
+
+fn hamming(x:u8, y:u8) -> u4 {
+    var val = x ^ y;
+    var dist:u4 = 0;
+    while (val != 0) {
+        dist += 1;
+        val &= val - 1;
+    }
+    dist
+}
+
+error UnevenInput;
+pub fn hamming_distance(x: []const u8, y: []const u8) -> %u32 {
+    if (x.len != y.len) return error.UnevenInput;
+    var out:u32 = 0;
+    for (x) |cx, i| {
+        out += hamming(cx, y[i]);
+    }
+    out
+}
