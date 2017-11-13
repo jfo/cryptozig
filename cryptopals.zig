@@ -77,8 +77,6 @@ error UnevenInput;
 pub fn hamming_distance(x: []const u8, y: []const u8) -> %u32 {
     if (x.len != y.len) return error.UnevenInput;
     var out:u32 = 0;
-    for (x) |cx, i| {
-        out += hamming(cx, y[i]);
-    }
+    for (x) |cx, i| out += hamming(cx, y[i]);
     out
 }
