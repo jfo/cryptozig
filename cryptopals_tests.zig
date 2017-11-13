@@ -116,12 +116,12 @@ test "Implement repeating-key XOR" {
     assert(mem.eql(u8, expected[0..], output[0..expected.len]));
 }
 
-test "Break repeating-key XOR" {
+test "run Break repeating-key XOR" {
     assert(37 == %%cp.hamming_distance("this is a test", "wokka wokka!!!"));
 
 
     assert(%%cp.hamming_distance("1234", "5678") ==
-            cp.keysize_hamming("12345678", 4));
+            %%cp.keysize_hamming("12345678", 4));
     assert(%%cp.hamming_distance("123", "456") ==
-            cp.keysize_hamming("12345678", 3));
+            %%cp.keysize_hamming("12345678", 3));
 }
