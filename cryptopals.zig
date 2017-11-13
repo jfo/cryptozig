@@ -88,3 +88,9 @@ pub fn hamming_distance(x: []const u8, y: []const u8) -> %u32 {
     for (x) |cx, i| out += hamming(cx, y[i]);
     out
 }
+
+pub fn keysize_hamming(src: []const u8, keysize: u32) -> u32 {
+    const chunk_one = src[0..keysize];
+    const chunk_two = src[keysize..keysize*2];
+    %%hamming_distance(chunk_one, chunk_two)
+}
