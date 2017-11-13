@@ -82,6 +82,8 @@ pub fn hamming(x:u8, y:u8) -> u4 {
 }
 
 error UnevenInput;
+error InsufficientInput;
+
 pub fn hamming_distance(x: []const u8, y: []const u8) -> %u32 {
     if (x.len != y.len) return error.UnevenInput;
     var out:u32 = 0;
@@ -89,10 +91,29 @@ pub fn hamming_distance(x: []const u8, y: []const u8) -> %u32 {
     out
 }
 
-error InsufficientInput;
 pub fn keysize_hamming(src: []const u8, keysize: u32) -> %u32 {
     if (src.len < keysize * 2) return error.InsufficientInput;
     const chunk_one = src[0..keysize];
     const chunk_two = src[keysize..keysize*2];
     %%hamming_distance(chunk_one, chunk_two)
+}
+
+// up to 40
+pub fn simple_likely_keysize(src: []const u8) -> %u8 {
+    const max_keysize_attempt = 40;
+    if (src.len < max_keysize_attempt * 2) return error.InsufficientInput;
+
+    var smallest_edit_size: u8 = @maxValue(u8);;
+    var likely_key_size: u8 = undefined;
+
+    var i: u8 = 1;
+    while (i < max_keysize_attempt) {
+        const distance = %%keysize_hamming(src, i) / i;
+        if (distance < smallest_edit_size) {
+            smallest_edit_size = u8(distance);
+            likely_key_size = i;
+        }
+        i += 1;
+    }
+    likely_key_size
 }

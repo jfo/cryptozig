@@ -137,21 +137,8 @@ test "run Break repeating-key XOR" {
     _ = file.read(buf[0..s]);
 
     var dest: [64 * 64 * 64]u8 = undefined;
-    const output = base64.decode(dest[0..s], buf[0..s]);
+    const src = base64.decode(dest[0..s], buf[0..s]);
 
-    warn("\n{}\n", output);
-    warn("\n{}\n", output.len);
-
-    var i: u8 = 1;
-    var smallest_edit_size: u8 = @maxValue(u8);;
-    var likely_key_size: u8 = undefined;
-    while (i < 40) {
-        const distance = %%cp.keysize_hamming(output, i) / i;
-        if (distance < smallest_edit_size) {
-            smallest_edit_size = u8(distance);
-            likely_key_size = i;
-        }
-        i += 1;
-    }
+    var likely_key_size: u8 = %%cp.simple_likely_keysize(src);;
     warn("\n{}\n", likely_key_size);
 }
