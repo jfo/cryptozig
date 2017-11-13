@@ -119,9 +119,39 @@ test "Implement repeating-key XOR" {
 test "run Break repeating-key XOR" {
     assert(37 == %%cp.hamming_distance("this is a test", "wokka wokka!!!"));
 
-
+    const hamming_test_str = "12345678";
     assert(%%cp.hamming_distance("1234", "5678") ==
-            %%cp.keysize_hamming("12345678", 4));
+            %%cp.keysize_hamming(hamming_test_str, 4));
     assert(%%cp.hamming_distance("123", "456") ==
-            %%cp.keysize_hamming("12345678", 3));
+            %%cp.keysize_hamming(hamming_test_str, 3));
+
+    var inc_allocator = %%std.heap.IncrementingAllocator.init(10 * 1024 * 1024);
+    defer inc_allocator.deinit();
+    const allocator = &inc_allocator.allocator;
+    var file = %%std.io.File.openRead("datafiles/6.txt", allocator);
+    defer file.close();
+
+    const s:usize = %%file.getEndPos();
+    var buf: [100 * 64]u8 = undefined;
+
+    _ = file.read(buf[0..s]);
+
+    var dest: [64 * 64 * 64]u8 = undefined;
+    const output = base64.decode(dest[0..s], buf[0..s]);
+
+    warn("\n{}\n", output);
+    warn("\n{}\n", output.len);
+
+    var i: u8 = 1;
+    var smallest_edit_size: u8 = @maxValue(u8);;
+    var likely_key_size: u8 = undefined;
+    while (i < 40) {
+        const distance = %%cp.keysize_hamming(output, i) / i;
+        if (distance < smallest_edit_size) {
+            smallest_edit_size = u8(distance);
+            likely_key_size = i;
+        }
+        i += 1;
+    }
+    warn("\n{}\n", likely_key_size);
 }
