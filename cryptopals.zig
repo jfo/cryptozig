@@ -63,7 +63,15 @@ pub fn repeating_key_xor(dest: []u8, src: []const u8, key: []const u8) -> void {
     for (src) |e, i| dest[i] = key[i % key.len] ^ e
 }
 
-fn hamming(x:u8, y:u8) -> u4 {
+// this prints backwards rn a doy
+fn printb(nq:u8)->void {
+    var n = nq;
+    while (n != 0) {
+        if (n & 1 != 0) warn("1") else warn("0");
+        n >>= 1;
+    }
+}
+pub fn hamming(x:u8, y:u8) -> u4 {
     var val = x ^ y;
     var dist:u4 = 0;
     while (val != 0) {

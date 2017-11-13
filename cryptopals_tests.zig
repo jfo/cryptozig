@@ -117,6 +117,8 @@ test "Implement repeating-key XOR" {
 }
 
 test "run Break repeating-key XOR" {
+    assert(37 == %%cp.hamming_distance("this is a test", "wokka wokka!!!"));
+
     // var inc_allocator = %%std.heap.IncrementingAllocator.init(10 * 1024 * 1024);
     // defer inc_allocator.deinit();
     // const allocator = &inc_allocator.allocator;
@@ -132,10 +134,4 @@ test "run Break repeating-key XOR" {
     // var dest: [64 * 64 * 64]u8 = undefined;
     // const output= base64.decode(dest[0..], buf[0..]);
     // warn("\n{}\n", dest[0..]);
-
-    // const x = cp.hamming(14,78);
-    const x = cp.hamming_distance("this is a test", "wokka wokka!!!");
-    warn("\n{}\n", x);
 }
-
-
