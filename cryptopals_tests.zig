@@ -153,8 +153,8 @@ test "run Break repeating-key XOR" {
     }
 
     warn("\n");
-    for (dest2) |ch| {
-        for (ch[0..]) |c| warn("{c}", c);
+    for (dest2) |decoded_line| {
+        for (decoded_line[0..]) |c| warn("{c}", c);
         warn("\n");
     }
 
