@@ -144,7 +144,6 @@ test "run Break repeating-key XOR" {
     warn("\n");
     for (lines) |line| cp.printLn(line);
 
-
     warn("\n");
     var dest2: [10][45]u8 = undefined;
     for (lines) |line, i| {
@@ -154,7 +153,24 @@ test "run Break repeating-key XOR" {
 
     warn("\n");
     for (dest2) |decoded_line| {
-        for (decoded_line[0..]) |c| warn("{c}", c);
+        for (decoded_line[0..]) |c| warn("{x02}", c);
+        warn("\n");
+    }
+
+    var i:u32 = 0;
+    var dest3: [45][10]u8 = undefined;
+    while (i <= dest2.len) {
+        for (dest2) |block, idx1| {
+            for (block) |b, idx2| {
+                dest3[idx2][idx1] = b;
+                // if (idx1 == idx2) warn("{x02}", b);
+            }
+        }
+        i+=1;
+    }
+    warn("\n");
+    for (dest3) |line| {
+        for (line) |l| warn("{x02}", l);
         warn("\n");
     }
 
