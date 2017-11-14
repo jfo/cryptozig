@@ -129,7 +129,7 @@ test "run Break repeating-key XOR" {
     var inc_allocator = %%std.heap.IncrementingAllocator.init(10 * 1024 * 1024);
     defer inc_allocator.deinit();
     const allocator = &inc_allocator.allocator;
-    var file = %%std.io.File.openRead("datafiles/6.txt", allocator);
+    var file = %%std.io.File.openRead("datafiles/6test.txt", allocator);
     defer file.close();
 
     // read the source file into a buffer
@@ -137,32 +137,50 @@ test "run Break repeating-key XOR" {
     var buf: [100 * 64]u8 = undefined;
     _ = file.read(buf[0..s]);
 
-    var dest: [64 * 64 * 64]u8 = undefined;
-    const src = base64.decode(dest[0..s], buf[0..s]);
+    // split the file into line slices
+    var dest: [10][]u8 = undefined;
+    const lines = cp.readlines(dest[0..], buf[0..s]);
 
-    // Let KEYSIZE be the guessed length of the key; try values from 2 to (say) 40.
+    warn("\n");
+    for (lines) |line| cp.printLn(line);
+
+
+    warn("\n");
+    var dest2: [10][45]u8 = undefined;
+    for (lines) |line, i| {
+        warn("\n");
+        var decoded_line = base64.decode(dest2[i][0..], line);
+    }
+
+    warn("\n");
+    for (dest2) |ch| {
+        for (ch[0..]) |c| warn("{c}", c);
+        warn("\n");
+    }
+
+    // // Let KEYSIZE be the guessed length of the key; try values from 2 to (say) 40.
     // For each KEYSIZE, take the first KEYSIZE worth of bytes, and the second
     // KEYSIZE worth of bytes, and find the edit distance between them. Normalize
     // this result by dividing by KEYSIZE.
-    const likely_key_size: u8 = %%cp.simple_likely_keysize(src);;
+    // const likely_key_size: u8 = %%cp.simple_likely_keysize(src);;
 
     // Now that you probably know the KEYSIZE: break the ciphertext into blocks of
     // KEYSIZE length.
-    var dest2: [585][]u8 = undefined;
-    const chunks = cp.break_into_keysize_chunks(dest2[0..], src, likely_key_size);
+    // var dest2: [585][]u8 = undefined;
+    // const chunks = cp.break_into_keysize_chunks(dest2[0..], src, likely_key_size);
 
-    for (chunks[0..]) |chunk| cp.printLn(chunk);
+    // for (chunks[0..]) |chunk| cp.printLn(chunk);
     // Now transpose the blocks: make a block that is the first byte of every block,
     // and a block that is the second byte of every block, and so on.
 
-    var out: [5][585]u8 = undefined;
-    _ = cp.transpose_blocks(&out, chunks[0..], likely_key_size);
-    for(out[0..1]) |o| {
-        for(o) |ol| {
-            warn("{x02} ", ol);
-        }
-        warn("\n");
-    }
+    // var out: [5][585]u8 = undefined;
+    // const wat = cp.transpose_blocks(&out, chunks[0..], 5);
+    // for(out[0..1]) |o| {
+    //     for(o) |ol| {
+    //         warn("{} ", ol);
+    //     }
+    //     warn("\n");
+    // }
     // for (chunks[0..10]) |chunk, dix| {
     //     for (chunk) |c, i| {
     //         const pos = i % likely_key_size;
@@ -179,7 +197,7 @@ test "run Break repeating-key XOR" {
     // var cha:u8 = 0;
     // warn("\n");
 
-    // for (blocks[0..]) |line| {
+    // for ((*wat)[0..]) |line| {
     //     while (i < @maxValue(u8)) {
     //         var l = cp.one_char_xor(buffer[0..], line[0..], i);
     //         const score = cp.scorer(l[0..]);
@@ -187,13 +205,12 @@ test "run Break repeating-key XOR" {
     //             last_winner_score = score;
     //             for (l[0..l.len]) |b, idx| winner[idx] = b;
     //             cha = i;
+    //             warn("\n{}\n", l);
     //         }
     //         i += 1;
     //     }
-    //     warn("{} ", cha);
     //     last_winner_score = 0;
     // }
     // warn("\n");
 
-    // warn("\n{}\n", winner);
 }
