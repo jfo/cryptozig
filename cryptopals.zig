@@ -40,7 +40,10 @@ pub fn scorer(src: []const u8) -> u32 {
 }
 
 pub fn printLn(line: []u8) -> void {
-    for (line) |c| warn("{c}", c);
+    for (line) |c| {
+        warn("{x02}", c);
+    }
+    warn("\n");
 }
 
 pub fn readlines(dest: [][]u8, content: []u8) -> [][]u8 {
@@ -116,4 +119,16 @@ pub fn simple_likely_keysize(src: []const u8) -> %u8 {
         i += 1;
     }
     likely_key_size
+}
+
+pub fn break_into_keysize_chunks(dest: [][]u8, src: []u8, keysize: u8) -> [][]u8 {
+    var idx1:usize = 0;
+    var idx2:usize = 0;
+    for (src) |c, i| if (i % keysize == 0) {
+        if (i > src.len) break;
+        dest[idx1] = src[idx2..i];
+        idx1 += 1;
+        idx2 = i;
+    };
+    dest
 }

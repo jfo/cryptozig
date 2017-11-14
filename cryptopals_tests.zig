@@ -125,20 +125,85 @@ test "run Break repeating-key XOR" {
     assert(%%cp.hamming_distance("123", "456") ==
             %%cp.keysize_hamming(hamming_test_str, 3));
 
+    // open the source file
     var inc_allocator = %%std.heap.IncrementingAllocator.init(10 * 1024 * 1024);
     defer inc_allocator.deinit();
     const allocator = &inc_allocator.allocator;
     var file = %%std.io.File.openRead("datafiles/6.txt", allocator);
     defer file.close();
 
+    // read the source file into a buffer
     const s:usize = %%file.getEndPos();
     var buf: [100 * 64]u8 = undefined;
-
     _ = file.read(buf[0..s]);
 
     var dest: [64 * 64 * 64]u8 = undefined;
     const src = base64.decode(dest[0..s], buf[0..s]);
 
-    var likely_key_size: u8 = %%cp.simple_likely_keysize(src);;
-    warn("\n{}\n", likely_key_size);
+    // Let KEYSIZE be the guessed length of the key; try values from 2 to (say) 40.
+    // For each KEYSIZE, take the first KEYSIZE worth of bytes, and the second
+    // KEYSIZE worth of bytes, and find the edit distance between them. Normalize
+    // this result by dividing by KEYSIZE.
+    const likely_key_size: u8 = %%cp.simple_likely_keysize(src);;
+
+    // Now that you probably know the KEYSIZE: break the ciphertext into blocks of
+    // KEYSIZE length.
+    var dest2: [585][]u8 = undefined;
+    const chunks = cp.break_into_keysize_chunks(dest2[0..], src, likely_key_size);
+
+    // for (chunks[0..]) |chunk| cp.printLn(chunk);
+
+    // Now transpose the blocks: make a block that is the first byte of every block,
+    // and a block that is the second byte of every block, and so on.
+
+    // var blocks: [5][585]u8 = undefined;
+    // for (chunks[0..10]) |chunk, dix| {
+    //     for (chunk) |c, i| {
+    //         const pos = i % likely_key_size;
+    //         blocks[pos][i] = c;
+    //         warn("{x02}", c);
+    //     }
+    // }
+    // warn("\n");
+
+    var blocks = [5][5]u8{ "11111", "22222", "33333", "44444", "55555" };
+    var out: [5][5]u8 = undefined;
+    warn("\n");
+    var i:u32 = 0;
+
+    while (i < blocks.len) {
+        for (blocks) |block, idx1| {
+            for (block) |b, idx2| {
+                if (idx2 == idx1) out[i][idx1] = b;
+            }
+        }
+        i+=1;
+    }
+
+    for(out) |o| warn("{}\n", o);
+
+    // var winner: [5000]u8 = undefined;
+    // var buffer: [5000]u8 = undefined;
+    // var last_winner_score:u32 = 0;
+    // var i:u8 = 0;
+    // var cha:u8 = 0;
+    // warn("\n");
+
+    // for (blocks[0..]) |line| {
+    //     while (i < @maxValue(u8)) {
+    //         var l = cp.one_char_xor(buffer[0..], line[0..], i);
+    //         const score = cp.scorer(l[0..]);
+    //         if (score > last_winner_score) {
+    //             last_winner_score = score;
+    //             for (l[0..l.len]) |b, idx| winner[idx] = b;
+    //             cha = i;
+    //         }
+    //         i += 1;
+    //     }
+    //     warn("{} ", cha);
+    //     last_winner_score = 0;
+    // }
+    // warn("\n");
+
+    // warn("\n{}\n", winner);
 }
