@@ -151,12 +151,18 @@ test "run Break repeating-key XOR" {
     var dest2: [585][]u8 = undefined;
     const chunks = cp.break_into_keysize_chunks(dest2[0..], src, likely_key_size);
 
-    // for (chunks[0..]) |chunk| cp.printLn(chunk);
-
+    for (chunks[0..]) |chunk| cp.printLn(chunk);
     // Now transpose the blocks: make a block that is the first byte of every block,
     // and a block that is the second byte of every block, and so on.
 
-    // var blocks: [5][585]u8 = undefined;
+    var out: [5][585]u8 = undefined;
+    _ = cp.transpose_blocks(&out, chunks[0..], likely_key_size);
+    for(out[0..1]) |o| {
+        for(o) |ol| {
+            warn("{x02} ", ol);
+        }
+        warn("\n");
+    }
     // for (chunks[0..10]) |chunk, dix| {
     //     for (chunk) |c, i| {
     //         const pos = i % likely_key_size;
@@ -165,11 +171,6 @@ test "run Break repeating-key XOR" {
     //     }
     // }
 
-    var out: [5][5]u8 = undefined;
-    var blocks = [][]const u8{ "11111", "22222", "33333", "44444", "55555" };
-    _ = cp.transpose_blocks(&out, blocks[0..], 5);
-    warn("\n");
-    for(out) |o| warn("{}\n", o);
 
     // var winner: [5000]u8 = undefined;
     // var buffer: [5000]u8 = undefined;

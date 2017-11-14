@@ -41,7 +41,7 @@ pub fn scorer(src: []const u8) -> u32 {
 
 pub fn printLn(line: []u8) -> void {
     for (line) |c| {
-        warn("{x02}", c);
+        warn("{x02} ", c);
     }
     warn("\n");
 }
@@ -133,12 +133,12 @@ pub fn break_into_keysize_chunks(dest: [][]u8, src: []u8, keysize: u8) -> [][]u8
     dest
 }
 
-pub fn transpose_blocks(dest: &[5][5]u8, src: [][]const u8, keysize: u8) -> &[5][5]u8 {
+pub fn transpose_blocks(dest: &[5][585]u8, src: [][]const u8, keysize: u8) -> &[5][585]u8 {
     var i:u32 = 0;
-    while (i < src.len) {
+    while (i <= src.len) {
         for (src) |block, idx1| {
             for (block) |b, idx2| {
-                if (idx2 == idx1) (*dest)[i][idx1] = b;
+                (*dest)[idx2][idx1] = b;
             }
         }
         i+=1;
