@@ -164,22 +164,11 @@ test "run Break repeating-key XOR" {
     //         warn("{x02}", c);
     //     }
     // }
-    // warn("\n");
 
-    var blocks = [5][5]u8{ "11111", "22222", "33333", "44444", "55555" };
     var out: [5][5]u8 = undefined;
+    var blocks = [][]const u8{ "11111", "22222", "33333", "44444", "55555" };
+    _ = cp.transpose_blocks(&out, blocks[0..], 5);
     warn("\n");
-    var i:u32 = 0;
-
-    while (i < blocks.len) {
-        for (blocks) |block, idx1| {
-            for (block) |b, idx2| {
-                if (idx2 == idx1) out[i][idx1] = b;
-            }
-        }
-        i+=1;
-    }
-
     for(out) |o| warn("{}\n", o);
 
     // var winner: [5000]u8 = undefined;
