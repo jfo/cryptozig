@@ -134,7 +134,7 @@ test "run Break repeating-key XOR" {
 
     // read the source file into a buffer
     const s:usize = %%file.getEndPos();
-    var buf: [100 * 64]u8 = undefined;
+    var buf: [1000 * 64]u8 = undefined;
     const input_size = %%file.read(buf[0..s]);
     const input = buf[0..input_size];
 
@@ -145,7 +145,7 @@ test "run Break repeating-key XOR" {
     // For each KEYSIZE, take the first KEYSIZE worth of bytes, and the second
     // KEYSIZE worth of bytes, and find the edit distance between them. Normalize
     // this result by dividing by KEYSIZE.
-    const likely_key_size: u8 = %%cp.simple_likely_keysize(decoded_input);;
+    const likely_key_size: u8 = %%cp.simple_likely_keysize(decoded_input);
 
     // Now that you probably know the KEYSIZE: break the ciphertext into blocks of
     // KEYSIZE length.
@@ -159,57 +159,32 @@ test "run Break repeating-key XOR" {
     var in = dest[0..];
     var transposed = cp.transpose_blocks(in, chunks[0..], likely_key_size);
 
-    var transposed_chunks_buf: [5][]u8 = undefined;
+    var transposed_chunks_buf: [10][]u8 = undefined;
     var transposed_chunks = cp.break_into_chunks(transposed_chunks_buf[0..], transposed, chunks.len);
 
-    for (transposed_chunks) |to| {
-        cp.printLn(to);
+    // for (transposed_chunks) |to| {
+        // cp.printLn(to);
+    // }
+
+
+    var key: [5]u8 = undefined;
+    for (transposed_chunks) |chunk, idx| {
+        var buffer: [5000]u8 = undefined;
+        var i:u8 = 0;
+        var win:u32 = 0;
+        var char:u8 = undefined;
+        while (i < @maxValue(u8)) {
+            var l = cp.one_char_xor(buffer[0..], chunk, i);
+            var score = cp.scorer(l);
+            if (score > win) {
+                win = score;
+                char = i;
+            }
+            i += 1;
+        }
+        key[idx] = char;
     }
-
-    // var winner: [5000]u8 = undefined;
-    // var buffer: [5000]u8 = undefined;
-    // var last_winner_score:u32 = 0;
-    // var i:u8 = 0;
-    // var cha:u8 = 0;
-    // warn("\n");
-
-    // for (dest) |line| {
-    //     while (i < @maxValue(u8)) {
-    //         var l = cp.one_char_xor(buffer[0..], line[0..], i);
-    //         const score = cp.scorer(l[0..]);
-    //         if (score > last_winner_score) {
-    //             last_winner_score = score;
-    //             for (l[0..l.len]) |b, idx| winner[idx] = b;
-    //             cha = i;
-    //         }
-    //         i += 1;
-    //     }
-    //     last_winner_score = 0;
-    // }
-
-    // warn("\n");
-    // for (dest2) |decoded_line| {
-        // for (decoded_line[0..s]) |c| warn("{c}", c);
-        // warn("\n");
-    // }
-
-    // interpolate?
-    // var i:u32 = 0;
-    // var dest3: [45][10]u8 = undefined;
-    // while (i <= dest2.len) {
-    //     for (dest2) |block, idx1| {
-    //         for (block) |b, idx2| {
-    //             dest3[idx2][idx1] = b;
-    //             // if (idx1 == idx2) warn("{x02}", b);
-    //         }
-    //     }
-    //     i+=1;
-    // }
-    // warn("\n");
-    // for (dest3) |line| {
-    //     for (line) |l| warn("{x02}", l);
-    //     warn("\n");
-    // }
-
-
+    var destt: [5000]u8 = undefined;
+    cp.repeating_key_xor(destt[0..], decoded_input, key);
+    warn("{}", destt);
 }
