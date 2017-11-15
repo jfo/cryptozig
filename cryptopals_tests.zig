@@ -142,9 +142,9 @@ test "run Break repeating-key XOR" {
     var decoded_buf: [7000]u8 = undefined;
     var decoded_input = base64.decode(decoded_buf[0..], input);
 
-    // warn("\n");
-    // for (decoded_input) |c| warn("{x02}", c);
-    // warn("\n");
+    warn("\ndecoded input\n");
+    for (decoded_input[0..25]) |c| warn("{x02} ", c);
+    warn("\n");
 
     // Let KEYSIZE be the guessed length of the key; try values from 2 to (say) 40.
     // For each KEYSIZE, take the first KEYSIZE worth of bytes, and the second
@@ -156,26 +156,32 @@ test "run Break repeating-key XOR" {
     // Now that you probably know the KEYSIZE: break the ciphertext into blocks of
     // KEYSIZE length.
     var dest2: [585][]u8 = undefined;
-    const chunks = cp.break_into_keysize_chunks(dest2[0..], decoded_input, likely_key_size);
+    const chunks = cp.break_into_keysize_chunks(dest2[0..], decoded_input[0..], likely_key_size);
 
     // warn("\n{}\n", chunks.len);
+    warn("\nchunks by 5\n");
 
-    // for (chunks[0..]) |chunk| cp.printLn(chunk);
+    for (chunks[0..]) |chunk| cp.printLn(chunk);
+    warn("\n");
     // for (chunks[0..]) |chunk| warn("{}", chunk.len);
     // Now transpose the blocks: make a block that is the first byte of every block,
     // and a block that is the second byte of every block, and so on.
 
     var dest: [5000]u8 = undefined;
     var in = dest[0..];
-    var transposed = cp.transpose_blocks(in, chunks, 5);
+    var transposed = cp.transpose_blocks(in, chunks[0..], 5);
+
+    warn("transposed by 5\n");
+    cp.printLn(transposed);
+    warn("\n");
 
     var wat: [100][]u8 = undefined;
+    // // problem is here
     var t = cp.break_into_keysize_chunks(wat[0..], transposed, chunks.len);
-
+    warn("break into chunks len blocks\n");
     for (t) |to| {
         cp.printLn(to);
     }
-    // for (o) |d| { warn("{x02}", d); }
 
     // var winner: [5000]u8 = undefined;
     // var buffer: [5000]u8 = undefined;
