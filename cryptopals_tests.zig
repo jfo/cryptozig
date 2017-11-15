@@ -167,7 +167,15 @@ test "run Break repeating-key XOR" {
 
     var dest: [5000]u8 = undefined;
     var in = dest[0..];
-    _ = cp.transpose_blocks(in, chunks, 5);
+    var transposed = cp.transpose_blocks(in, chunks, 5);
+
+    var wat: [100][]u8 = undefined;
+    var t = cp.break_into_keysize_chunks(wat[0..], transposed, chunks.len);
+
+    for (t) |to| {
+        cp.printLn(to);
+    }
+    // for (o) |d| { warn("{x02}", d); }
 
     // var winner: [5000]u8 = undefined;
     // var buffer: [5000]u8 = undefined;

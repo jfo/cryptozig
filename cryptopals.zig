@@ -121,7 +121,7 @@ pub fn simple_likely_keysize(src: []const u8) -> %u8 {
     likely_key_size
 }
 
-pub fn break_into_keysize_chunks(dest: [][]u8, src: []u8, keysize: u8) -> [][]u8 {
+pub fn break_into_keysize_chunks(dest: [][]u8, src: []u8, keysize: usize) -> [][]u8 {
     var idx1:usize = 0;
     var idx2:usize = 0;
     for (src) |c, i| if (i % keysize == 0) {
@@ -133,7 +133,7 @@ pub fn break_into_keysize_chunks(dest: [][]u8, src: []u8, keysize: u8) -> [][]u8
     dest[1..idx1]
 }
 
-pub fn transpose_blocks(dest: []u8, src: [][]const u8, keysize: u8) -> [][]u8 {
+pub fn transpose_blocks(dest: []u8, src: [][]const u8, keysize: u8) -> []u8 {
     var out: [][]u8 = undefined;
 
     var i: u32 = 0;
@@ -147,7 +147,5 @@ pub fn transpose_blocks(dest: []u8, src: [][]const u8, keysize: u8) -> [][]u8 {
         id += u32(src.len);
     }
 
-    for (dest) |d| { warn("{x02}", d); }
-
-    out
+    dest[0..src.len*keysize]
 }
