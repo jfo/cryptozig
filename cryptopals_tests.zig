@@ -129,82 +129,45 @@ test "run Break repeating-key XOR" {
     var inc_allocator = %%std.heap.IncrementingAllocator.init(10 * 1024 * 1024);
     defer inc_allocator.deinit();
     const allocator = &inc_allocator.allocator;
-    var file = %%std.io.File.openRead("datafiles/6test.txt", allocator);
+    var file = %%std.io.File.openRead("datafiles/6stripped.txt", allocator);
     defer file.close();
 
     // read the source file into a buffer
     const s:usize = %%file.getEndPos();
     var buf: [100 * 64]u8 = undefined;
-    _ = file.read(buf[0..s]);
+    const input_size = %%file.read(buf[0..s]);
+    const input = buf[0..input_size];
 
-    // split the file into line slices
-    var dest: [10][]u8 = undefined;
-    const lines = cp.readlines(dest[0..], buf[0..s]);
 
-    warn("\n");
-    for (lines) |line| cp.printLn(line);
+    var decoded_buf: [7000]u8 = undefined;
+    var decoded_input = base64.decode(decoded_buf[0..], input);
 
-    warn("\n");
-    var dest2: [10][45]u8 = undefined;
-    for (lines) |line, i| {
-        warn("\n");
-        var decoded_line = base64.decode(dest2[i][0..], line);
-    }
+    // warn("\n");
+    // for (decoded_input) |c| warn("{x02}", c);
+    // warn("\n");
 
-    warn("\n");
-    for (dest2) |decoded_line| {
-        for (decoded_line[0..]) |c| warn("{x02}", c);
-        warn("\n");
-    }
-
-    var i:u32 = 0;
-    var dest3: [45][10]u8 = undefined;
-    while (i <= dest2.len) {
-        for (dest2) |block, idx1| {
-            for (block) |b, idx2| {
-                dest3[idx2][idx1] = b;
-                // if (idx1 == idx2) warn("{x02}", b);
-            }
-        }
-        i+=1;
-    }
-    warn("\n");
-    for (dest3) |line| {
-        for (line) |l| warn("{x02}", l);
-        warn("\n");
-    }
-
-    // // Let KEYSIZE be the guessed length of the key; try values from 2 to (say) 40.
+    // Let KEYSIZE be the guessed length of the key; try values from 2 to (say) 40.
     // For each KEYSIZE, take the first KEYSIZE worth of bytes, and the second
     // KEYSIZE worth of bytes, and find the edit distance between them. Normalize
     // this result by dividing by KEYSIZE.
-    // const likely_key_size: u8 = %%cp.simple_likely_keysize(src);;
+    const likely_key_size: u8 = %%cp.simple_likely_keysize(decoded_input);;
+    // warn("\n{}\n", likely_key_size);
 
     // Now that you probably know the KEYSIZE: break the ciphertext into blocks of
     // KEYSIZE length.
-    // var dest2: [585][]u8 = undefined;
-    // const chunks = cp.break_into_keysize_chunks(dest2[0..], src, likely_key_size);
+    var dest2: [585][]u8 = undefined;
+    const chunks = cp.break_into_keysize_chunks(dest2[0..], decoded_input, likely_key_size);
+
+    // warn("\n{}\n", chunks.len);
 
     // for (chunks[0..]) |chunk| cp.printLn(chunk);
+    // for (chunks[0..]) |chunk| warn("{}", chunk.len);
     // Now transpose the blocks: make a block that is the first byte of every block,
     // and a block that is the second byte of every block, and so on.
 
-    // var out: [5][585]u8 = undefined;
-    // const wat = cp.transpose_blocks(&out, chunks[0..], 5);
-    // for(out[0..1]) |o| {
-    //     for(o) |ol| {
-    //         warn("{} ", ol);
-    //     }
-    //     warn("\n");
-    // }
-    // for (chunks[0..10]) |chunk, dix| {
-    //     for (chunk) |c, i| {
-    //         const pos = i % likely_key_size;
-    //         blocks[pos][i] = c;
-    //         warn("{x02}", c);
-    //     }
-    // }
-
+    var dest: [5000]u8 = undefined;
+    var in = dest[0..];
+    _ = cp.transpose_blocks(in, chunks, 5);
 
     // var winner: [5000]u8 = undefined;
     // var buffer: [5000]u8 = undefined;
@@ -213,7 +176,7 @@ test "run Break repeating-key XOR" {
     // var cha:u8 = 0;
     // warn("\n");
 
-    // for ((*wat)[0..]) |line| {
+    // for (dest) |line| {
     //     while (i < @maxValue(u8)) {
     //         var l = cp.one_char_xor(buffer[0..], line[0..], i);
     //         const score = cp.scorer(l[0..]);
@@ -221,12 +184,35 @@ test "run Break repeating-key XOR" {
     //             last_winner_score = score;
     //             for (l[0..l.len]) |b, idx| winner[idx] = b;
     //             cha = i;
-    //             warn("\n{}\n", l);
     //         }
     //         i += 1;
     //     }
     //     last_winner_score = 0;
     // }
+
     // warn("\n");
+    // for (dest2) |decoded_line| {
+        // for (decoded_line[0..s]) |c| warn("{c}", c);
+        // warn("\n");
+    // }
+
+    // interpolate?
+    // var i:u32 = 0;
+    // var dest3: [45][10]u8 = undefined;
+    // while (i <= dest2.len) {
+    //     for (dest2) |block, idx1| {
+    //         for (block) |b, idx2| {
+    //             dest3[idx2][idx1] = b;
+    //             // if (idx1 == idx2) warn("{x02}", b);
+    //         }
+    //     }
+    //     i+=1;
+    // }
+    // warn("\n");
+    // for (dest3) |line| {
+    //     for (line) |l| warn("{x02}", l);
+    //     warn("\n");
+    // }
+
 
 }
