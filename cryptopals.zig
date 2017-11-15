@@ -124,11 +124,11 @@ pub fn simple_likely_keysize(src: []const u8) -> %u8 {
 pub fn break_into_keysize_chunks(dest: [][]u8, src: []u8, keysize: usize) -> [][]u8 {
     dest[0] = src[0..keysize];
     var idx:usize = 1;
-    while (idx < keysize) {
+    while (idx < src.len / keysize) {
         dest[idx] = src[keysize * idx..keysize * idx + keysize];
         idx += 1;
     }
-    dest[0..keysize]
+    dest[0..src.len / keysize]
 }
 
 pub fn transpose_blocks(dest: []u8, src: [][]const u8, keysize: u8) -> []u8 {

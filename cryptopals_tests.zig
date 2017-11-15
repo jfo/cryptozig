@@ -143,7 +143,7 @@ test "run Break repeating-key XOR" {
     var decoded_input = base64.decode(decoded_buf[0..], input);
 
     warn("\ndecoded input\n");
-    for (decoded_input[0..25]) |c| warn("{x02} ", c);
+    for (decoded_input[0..30]) |c| warn("{x02} ", c);
     warn("\n");
 
     // Let KEYSIZE be the guessed length of the key; try values from 2 to (say) 40.
