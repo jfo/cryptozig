@@ -138,48 +138,31 @@ test "run Break repeating-key XOR" {
     const input_size = %%file.read(buf[0..s]);
     const input = buf[0..input_size];
 
-
     var decoded_buf: [7000]u8 = undefined;
     var decoded_input = base64.decode(decoded_buf[0..], input);
-
-    warn("\ndecoded input\n");
-    for (decoded_input[0..30]) |c| warn("{x02} ", c);
-    warn("\n");
 
     // Let KEYSIZE be the guessed length of the key; try values from 2 to (say) 40.
     // For each KEYSIZE, take the first KEYSIZE worth of bytes, and the second
     // KEYSIZE worth of bytes, and find the edit distance between them. Normalize
     // this result by dividing by KEYSIZE.
     const likely_key_size: u8 = %%cp.simple_likely_keysize(decoded_input);;
-    // warn("\n{}\n", likely_key_size);
 
     // Now that you probably know the KEYSIZE: break the ciphertext into blocks of
     // KEYSIZE length.
     var dest2: [585][]u8 = undefined;
-    const chunks = cp.break_into_keysize_chunks(dest2[0..], decoded_input[0..], likely_key_size);
+    const chunks = cp.break_into_chunks(dest2[0..], decoded_input[0..], likely_key_size);
 
-    // warn("\n{}\n", chunks.len);
-    warn("\nchunks by 5\n");
-
-    for (chunks[0..]) |chunk| cp.printLn(chunk);
-    warn("\n");
-    // for (chunks[0..]) |chunk| warn("{}", chunk.len);
     // Now transpose the blocks: make a block that is the first byte of every block,
     // and a block that is the second byte of every block, and so on.
 
     var dest: [5000]u8 = undefined;
     var in = dest[0..];
-    var transposed = cp.transpose_blocks(in, chunks[0..], 5);
+    var transposed = cp.transpose_blocks(in, chunks[0..], likely_key_size);
 
-    warn("transposed by 5\n");
-    cp.printLn(transposed);
-    warn("\n");
+    var transposed_chunks_buf: [5][]u8 = undefined;
+    var transposed_chunks = cp.break_into_chunks(transposed_chunks_buf[0..], transposed, chunks.len);
 
-    var wat: [100][]u8 = undefined;
-    // // problem is here
-    var t = cp.break_into_keysize_chunks(wat[0..], transposed, chunks.len);
-    warn("break into chunks len blocks\n");
-    for (t) |to| {
+    for (transposed_chunks) |to| {
         cp.printLn(to);
     }
 
