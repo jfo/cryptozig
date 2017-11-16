@@ -14,7 +14,8 @@ pub fn hexDigit(c: u8) -> u8 {
 
 pub fn hexDigits(dest: []u8, src: []const u8) -> []u8 {
     var i:u32 = 0;
-    while (i < src.len) {
+    // TODO: handle odd case
+    while (i < src.len - 1) {
         dest[i / 2] = hexDigit(src[i]) << 4 | hexDigit(src[i + 1]);
         i+=2;
     }
@@ -128,6 +129,47 @@ pub fn find_repeating_xor_keysize(src: []const u8) -> %u8 {
     }
     likely_key_size
 }
+
+fn detect_single_character_xor(input: []const u8) -> u8 {
+    var i:u8 = 0;
+
+    var winner: u8 = undefined;
+    var last_winner_score:u32 = 0;
+    while (i < @maxValue(u8)) {
+        var buffer: [500]u8 = undefined;
+
+        var l = one_char_xor(buffer[0..], input, i);
+
+        const score = scorer(l);
+        // warn("{}: {}\n", score, l[0..100]);
+
+        if (score > last_winner_score) {
+            last_winner_score = score;
+            winner = i;
+        }
+        i += 1;
+    }
+    winner
+}
+
+pub fn find_repeating_xor_key(output: []u8, input: []u8) -> []u8 {
+    const keysize = %%find_repeating_xor_keysize(input);
+
+    var dest: [64 * 64][]u8 = undefined;
+    const chunks = break_into_chunks(dest[0..], input, keysize);
+
+    var dest2: [64 * 64]u8 = undefined;
+    const transposed_arr = transpose_blocks(dest2[0..], chunks, keysize);
+
+    var dest3: [64 * 64][]u8 = undefined;
+    const transposed_chunks = break_into_chunks(dest3[0..], transposed_arr, chunks.len);
+
+   for (transposed_chunks) |chunk, i| {
+        output[i] = detect_single_character_xor(chunk);
+    }
+    output[0..transposed_chunks.len]
+}
+
 
 pub fn break_into_chunks(dest: [][]u8, src: []u8, chunksize: usize) -> [][]u8 {
     dest[0] = src[0..chunksize];

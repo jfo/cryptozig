@@ -147,46 +147,13 @@ test "run Break repeating-key XOR" {
     // KEYSIZE worth of bytes, and find the edit distance between them. Normalize
     // this result by dividing by KEYSIZE.
     const likely_key_size: u8 = %%cp.find_repeating_xor_keysize(decoded_input);
-    warn("\n{}\n", likely_key_size);
+    // warn("\n{}\n", likely_key_size);
 
-    // Now that you probably know the KEYSIZE: break the ciphertext into blocks of
-    // KEYSIZE length.
-    // var dest2: [585][]u8 = undefined;
-    // const chunks = cp.break_into_chunks(dest2[0..], decoded_input[0..], likely_key_size);
+    var keybuf: [7000]u8 = undefined;
+    const key: []u8 = cp.find_repeating_xor_key(keybuf[0..], decoded_input);
+    warn("\n{}\n", key);
 
-    // Now transpose the blocks: make a block that is the first byte of every block,
-    // and a block that is the second byte of every block, and so on.
-
-    // var dest: [5000]u8 = undefined;
-    // var in = dest[0..];
-    // var transposed = cp.transpose_blocks(in, chunks[0..], likely_key_size);
-
-    // var transposed_chunks_buf: [10][]u8 = undefined;
-    // var transposed_chunks = cp.break_into_chunks(transposed_chunks_buf[0..], transposed, chunks.len);
-
-    // for (transposed_chunks) |to| {
-        // cp.printLn(to);
-    // }
-
-
-    // var key: [5]u8 = undefined;
-    // for (transposed_chunks) |chunk, idx| {
-    //     var buffer: [5000]u8 = undefined;
-    //     var i:u8 = 0;
-    //     var win:u32 = 0;
-    //     var char:u8 = undefined;
-    //     while (i < @maxValue(u8)) {
-    //         var l = cp.one_char_xor(buffer[0..], chunk, i);
-    //         var score = cp.scorer(l);
-    //         if (score > win) {
-    //             win = score;
-    //             char = i;
-    //         }
-    //         i += 1;
-    //     }
-    //     key[idx] = char;
-    // }
-    // var destt: [5000]u8 = undefined;
-    // cp.repeating_key_xor(destt[0..], decoded_input, key);
-    // warn("{}", destt);
+    var destt: [5000]u8 = undefined;
+    cp.repeating_key_xor(destt[0..], decoded_input, key);
+    warn("{}", destt);
 }
