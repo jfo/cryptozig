@@ -116,7 +116,7 @@ test "Implement repeating-key XOR" {
     assert(mem.eql(u8, expected[0..], output[0..expected.len]));
 }
 
-test "run Break repeating-key XOR" {
+test "Break repeating-key XOR" {
     assert(37 == %%cp.hamming_distance("this is a test", "wokka wokka!!!"));
 
     const hamming_test_str = "12345678";
@@ -125,18 +125,8 @@ test "run Break repeating-key XOR" {
     assert(%%cp.hamming_distance("123", "456") ==
             %%cp.keysize_hamming(hamming_test_str, 3));
 
-    // // open the source file
-    var inc_allocator = %%std.heap.IncrementingAllocator.init(10 * 1024 * 1024);
-    defer inc_allocator.deinit();
-    const allocator = &inc_allocator.allocator;
-    var file = %%std.io.File.openRead("datafiles/6stripped.txt", allocator);
-    defer file.close();
-
-    // // read the source file into a buffer
-    const s:usize = %%file.getEndPos();
-    var buf: [1000 * 64]u8 = undefined;
-    const input_size = %%file.read(buf[0..s]);
-    const input = buf[0..input_size];
+    var buf: [100 * 64]u8 = undefined;
+    const input = %%cp.read_file_into_buf(buf[0..], "datafiles/6stripped.txt");
 
     // something is rotten here
     var decoded_buf: [7000]u8 = undefined;
@@ -148,6 +138,20 @@ test "run Break repeating-key XOR" {
     var destt: [5000]u8 = undefined;
     cp.repeating_key_xor(destt[0..], decoded_input, key);
 
-    // warn("\n{}\n", key);
-    // warn("{}", destt);
+    warn("\n{}\n", key);
+    warn("{}", destt);
+}
+
+test "AES in ECB mode" {
+    var buf: [1000 * 64]u8 = undefined;
+    const input = %%cp.read_file_into_buf(buf[0..], "datafiles/7stripped.txt");
+
+    var decoded_buf: [7000]u8 = undefined;
+    var decoded_input = base64.decode(decoded_buf[0..], input);
+    // warn("{}", decoded_input);
+
+    const key = "YELLOW SUBMARINE";
+    var out  = cp.thing(decoded_input, key);
+
+    warn("\n{}\n", out);
 }

@@ -1,7 +1,23 @@
+const std = @import("std");
 const warn = @import("std").debug.warn;
 const mem = @import("std").mem;
 
 // none of this is in any way done or intended beyond my own debuggery use.
+error InsufficientBuffer;
+pub fn read_file_into_buf(buf: []u8, filename: []const u8) -> %[]u8 {
+    // // open the source file
+    var inc_allocator = %%std.heap.IncrementingAllocator.init(10 * 1024 * 1024);
+    defer inc_allocator.deinit();
+    const allocator = &inc_allocator.allocator;
+    var file = %%std.io.File.openRead(filename, allocator);
+    defer file.close();
+
+    const filesize:usize = %%file.getEndPos();
+    if (buf.len < filesize) return error.InsufficientBuffer;
+    const input_size = %%file.read(buf[0..filesize]);
+    const data = buf[0..input_size];
+    data
+}
 
 pub fn hexDigit(c: u8) -> u8 {
     switch (c) {
@@ -196,4 +212,16 @@ pub fn transpose_blocks(dest: []u8, src: [][]const u8, keysize: u8) -> []u8 {
     }
 
     dest[0..src.len*keysize]
+}
+
+error LengthWrongTime;
+pub fn thing(src: [] const u8, key: [] const u8) -> %void {
+    if (src.len % key.len != 0 or key.len != 16) {
+        warn("fart\n");
+        return error.LengthWrongTime;
+    }
+
+    warn("\n{}\n", src.len);
+    warn("{}\n", key.len);
+    warn("{}\n", src.len % key.len);
 }
