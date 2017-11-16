@@ -119,11 +119,11 @@ test "Implement repeating-key XOR" {
 test "run Break repeating-key XOR" {
     assert(37 == %%cp.hamming_distance("this is a test", "wokka wokka!!!"));
 
-    // const hamming_test_str = "12345678";
-    // assert(%%cp.hamming_distance("1234", "5678") ==
-    //         %%cp.keysize_hamming(hamming_test_str, 4));
-    // assert(%%cp.hamming_distance("123", "456") ==
-    //         %%cp.keysize_hamming(hamming_test_str, 3));
+    const hamming_test_str = "12345678";
+    assert(%%cp.hamming_distance("1234", "5678") ==
+            %%cp.keysize_hamming(hamming_test_str, 4));
+    assert(%%cp.hamming_distance("123", "456") ==
+            %%cp.keysize_hamming(hamming_test_str, 3));
 
     // // open the source file
     var inc_allocator = %%std.heap.IncrementingAllocator.init(10 * 1024 * 1024);
@@ -142,18 +142,12 @@ test "run Break repeating-key XOR" {
     var decoded_buf: [7000]u8 = undefined;
     var decoded_input = base64.decode(decoded_buf[0..], input);
 
-    // Let KEYSIZE be the guessed length of the key; try values from 2 to (say) 40.
-    // For each KEYSIZE, take the first KEYSIZE worth of bytes, and the second
-    // KEYSIZE worth of bytes, and find the edit distance between them. Normalize
-    // this result by dividing by KEYSIZE.
-    const likely_key_size: u8 = %%cp.find_repeating_xor_keysize(decoded_input);
-    // warn("\n{}\n", likely_key_size);
-
     var keybuf: [7000]u8 = undefined;
     const key: []u8 = cp.find_repeating_xor_key(keybuf[0..], decoded_input);
-    warn("\n{}\n", key);
 
     var destt: [5000]u8 = undefined;
     cp.repeating_key_xor(destt[0..], decoded_input, key);
-    warn("{}", destt);
+
+    // warn("\n{}\n", key);
+    // warn("{}", destt);
 }
