@@ -58,13 +58,26 @@ def find_repeating_xor_size(input)
     outhash.sort_by{|k,v|v}.first.first
 end
 
-blocks = @input.each_slice(find_repeating_xor_size(@input)).to_a[0..-2].transpose
+def find_repeating_xor_key(input)
+    blocks = input.each_slice(find_repeating_xor_size(input)).to_a[0..-2].transpose
+    winner = blocks.map{ |block|
+        block.cxorer.map { |a| 
+            [a[0].scorer, a[0].map {|e|e.chr}.join, a[1]] 
+        }.sort_by { |a|
+            a.first
+        }.reverse.first
+    }
+    winner.map {|e|e[2].chr}.join
+end
 
-print (blocks.map do |block|
-    block.cxorer.map { |a|
-        [a[0].scorer, a[0].map {|e|e.chr}.join, a[1]]
-    }.sort_by { |a|
-        a.first
-    }.reverse.first[2].chr
-end.join)
-    # .transpose.map {|e| e.join }.join)
+def decrypt_repeating_xor(data)
+    key = find_repeating_xor_key(data)
+    keydata = key.split("").map{|e|e.ord}
+    data.each_slice(key.length).map {|l|
+        l.zip(keydata).map {|e|
+            (e[0] ^ e[1]).chr
+        }
+    }.join
+end
+
+print decrypt_repeating_xor(@input)
