@@ -102,18 +102,26 @@ pub fn keysize_hamming(src: []const u8, keysize: u32) -> %u32 {
 }
 
 // up to 40
-pub fn simple_likely_keysize(src: []const u8) -> %u8 {
+pub fn find_repeating_xor_keysize(src: []const u8) -> %u8 {
     const max_keysize_attempt = 40;
-    if (src.len < max_keysize_attempt * 2) return error.InsufficientInput;
+    // if (src.len < max_keysize_attempt * 2) return error.InsufficientInput;
 
-    var smallest_edit_size: u8 = @maxValue(u8);;
+    // @maxValue(f32); TODO analyze_min_max_value float
+    var smallest_edit_size: f32 = 30.0;
     var likely_key_size: u8 = undefined;
 
     var i: u8 = 1;
     while (i < max_keysize_attempt) {
-        const distance = %%keysize_hamming(src, i) / i;
+        var out: f32 = 0.0;
+        var idx: u32 = 0;
+        while (idx < src.len - (idx * i)) {
+            out += f32(%%keysize_hamming(src[i * idx..], i)) / f32(i);
+            idx += 1;
+        }
+        const distance: f32 = out / f32(idx);
+
         if (distance < smallest_edit_size) {
-            smallest_edit_size = u8(distance);
+            smallest_edit_size = distance;
             likely_key_size = i;
         }
         i += 1;

@@ -119,25 +119,26 @@ test "Implement repeating-key XOR" {
 test "run Break repeating-key XOR" {
     assert(37 == %%cp.hamming_distance("this is a test", "wokka wokka!!!"));
 
-    const hamming_test_str = "12345678";
-    assert(%%cp.hamming_distance("1234", "5678") ==
-            %%cp.keysize_hamming(hamming_test_str, 4));
-    assert(%%cp.hamming_distance("123", "456") ==
-            %%cp.keysize_hamming(hamming_test_str, 3));
+    // const hamming_test_str = "12345678";
+    // assert(%%cp.hamming_distance("1234", "5678") ==
+    //         %%cp.keysize_hamming(hamming_test_str, 4));
+    // assert(%%cp.hamming_distance("123", "456") ==
+    //         %%cp.keysize_hamming(hamming_test_str, 3));
 
-    // open the source file
+    // // open the source file
     var inc_allocator = %%std.heap.IncrementingAllocator.init(10 * 1024 * 1024);
     defer inc_allocator.deinit();
     const allocator = &inc_allocator.allocator;
     var file = %%std.io.File.openRead("datafiles/6stripped.txt", allocator);
     defer file.close();
 
-    // read the source file into a buffer
+    // // read the source file into a buffer
     const s:usize = %%file.getEndPos();
     var buf: [1000 * 64]u8 = undefined;
     const input_size = %%file.read(buf[0..s]);
     const input = buf[0..input_size];
 
+    // something is rotten here
     var decoded_buf: [7000]u8 = undefined;
     var decoded_input = base64.decode(decoded_buf[0..], input);
 
@@ -145,46 +146,47 @@ test "run Break repeating-key XOR" {
     // For each KEYSIZE, take the first KEYSIZE worth of bytes, and the second
     // KEYSIZE worth of bytes, and find the edit distance between them. Normalize
     // this result by dividing by KEYSIZE.
-    const likely_key_size: u8 = %%cp.simple_likely_keysize(decoded_input);
+    const likely_key_size: u8 = %%cp.find_repeating_xor_keysize(decoded_input);
+    warn("\n{}\n", likely_key_size);
 
     // Now that you probably know the KEYSIZE: break the ciphertext into blocks of
     // KEYSIZE length.
-    var dest2: [585][]u8 = undefined;
-    const chunks = cp.break_into_chunks(dest2[0..], decoded_input[0..], likely_key_size);
+    // var dest2: [585][]u8 = undefined;
+    // const chunks = cp.break_into_chunks(dest2[0..], decoded_input[0..], likely_key_size);
 
     // Now transpose the blocks: make a block that is the first byte of every block,
     // and a block that is the second byte of every block, and so on.
 
-    var dest: [5000]u8 = undefined;
-    var in = dest[0..];
-    var transposed = cp.transpose_blocks(in, chunks[0..], likely_key_size);
+    // var dest: [5000]u8 = undefined;
+    // var in = dest[0..];
+    // var transposed = cp.transpose_blocks(in, chunks[0..], likely_key_size);
 
-    var transposed_chunks_buf: [10][]u8 = undefined;
-    var transposed_chunks = cp.break_into_chunks(transposed_chunks_buf[0..], transposed, chunks.len);
+    // var transposed_chunks_buf: [10][]u8 = undefined;
+    // var transposed_chunks = cp.break_into_chunks(transposed_chunks_buf[0..], transposed, chunks.len);
 
     // for (transposed_chunks) |to| {
         // cp.printLn(to);
     // }
 
 
-    var key: [5]u8 = undefined;
-    for (transposed_chunks) |chunk, idx| {
-        var buffer: [5000]u8 = undefined;
-        var i:u8 = 0;
-        var win:u32 = 0;
-        var char:u8 = undefined;
-        while (i < @maxValue(u8)) {
-            var l = cp.one_char_xor(buffer[0..], chunk, i);
-            var score = cp.scorer(l);
-            if (score > win) {
-                win = score;
-                char = i;
-            }
-            i += 1;
-        }
-        key[idx] = char;
-    }
-    var destt: [5000]u8 = undefined;
-    cp.repeating_key_xor(destt[0..], decoded_input, key);
-    warn("{}", destt);
+    // var key: [5]u8 = undefined;
+    // for (transposed_chunks) |chunk, idx| {
+    //     var buffer: [5000]u8 = undefined;
+    //     var i:u8 = 0;
+    //     var win:u32 = 0;
+    //     var char:u8 = undefined;
+    //     while (i < @maxValue(u8)) {
+    //         var l = cp.one_char_xor(buffer[0..], chunk, i);
+    //         var score = cp.scorer(l);
+    //         if (score > win) {
+    //             win = score;
+    //             char = i;
+    //         }
+    //         i += 1;
+    //     }
+    //     key[idx] = char;
+    // }
+    // var destt: [5000]u8 = undefined;
+    // cp.repeating_key_xor(destt[0..], decoded_input, key);
+    // warn("{}", destt);
 }

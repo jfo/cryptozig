@@ -55,7 +55,9 @@ def find_repeating_xor_size(input)
         end
         outhash[keylen]  = out / grouped_input.count
     end
-    outhash.sort_by{|k,v|v}.first.first
+    o = outhash.sort_by{|k,v|v}.first.first
+    p o
+    o
 end
 
 def find_repeating_xor_key(input)
@@ -80,4 +82,4 @@ def decrypt_repeating_xor(data)
     }.join
 end
 
-print decrypt_repeating_xor(@input)
+decrypt_repeating_xor(@input)
