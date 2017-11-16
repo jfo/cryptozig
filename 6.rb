@@ -10,7 +10,7 @@ class Array
     def cxorer
         out = []
         (0..255).each do |c|
-            out << self.cxor(c)
+            out << [self.cxor(c), c]
         end
         out
     end
@@ -62,8 +62,9 @@ blocks = @input.each_slice(find_repeating_xor_size(@input)).to_a[0..-2].transpos
 
 print (blocks.map do |block|
     block.cxorer.map { |a|
-        [a.scorer, a.map {|e|e.chr}.join]
+        [a[0].scorer, a[0].map {|e|e.chr}.join, a[1]]
     }.sort_by { |a|
         a.first
-    }.reverse.first[1].split ""
-end.transpose.map {|e| e.join }.join)
+    }.reverse.first[2].chr
+end.join)
+    # .transpose.map {|e| e.join }.join)
