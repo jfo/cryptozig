@@ -214,6 +214,13 @@ pub fn transpose_blocks(dest: []u8, src: [][]const u8, keysize: u8) -> []u8 {
     dest[0..src.len*keysize]
 }
 
+pub fn break_repeating_key_xor(dest:[]u8, src:[]u8) -> []u8 {
+    var keybuf: [40]u8 = undefined;
+    const key = find_repeating_xor_key(keybuf[0..], src);
+    _ = repeating_key_xor(dest[0..], src, key);
+    dest[0..src.len]
+}
+
 error LengthWrongTime;
 pub fn thing(src: [] const u8, key: [] const u8) -> %void {
     if (src.len % key.len != 0 or key.len != 16) {

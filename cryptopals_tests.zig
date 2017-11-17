@@ -116,7 +116,7 @@ test "Implement repeating-key XOR" {
     assert(mem.eql(u8, expected[0..], output[0..expected.len]));
 }
 
-test "Break repeating-key XOR" {
+test "run Break repeating-key XOR" {
     assert(37 == %%cp.hamming_distance("this is a test", "wokka wokka!!!"));
 
     const hamming_test_str = "12345678";
@@ -129,17 +129,13 @@ test "Break repeating-key XOR" {
     const input = %%cp.read_file_into_buf(buf[0..], "datafiles/6stripped.txt");
 
     // something is rotten here
-    var decoded_buf: [7000]u8 = undefined;
+    var decoded_buf: [5000]u8 = undefined;
     var decoded_input = base64.decode(decoded_buf[0..], input);
 
-    var keybuf: [7000]u8 = undefined;
-    const key: []u8 = cp.find_repeating_xor_key(keybuf[0..], decoded_input);
+    var dest: [5000]u8 = undefined;
+    const decrypted = cp.break_repeating_key_xor(dest[0..], decoded_input);
 
-    var destt: [5000]u8 = undefined;
-    cp.repeating_key_xor(destt[0..], decoded_input, key);
-
-    warn("\n{}\n", key);
-    warn("{}", destt);
+    warn("{}", decrypted);
 }
 
 test "AES in ECB mode" {
