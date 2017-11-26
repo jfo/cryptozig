@@ -13,11 +13,13 @@ test "Convert hex to base64" {
     var dest:[src.len]u8 = undefined;
     const output_raw = cp.hexDigits(dest[0..], src[0..]);
 
-    var dest2:[src.len]u8 = undefined;
-    const output_base64 = base64.encode(dest2[0..], output_raw[0..output_raw.len]);
+    const encoder = base64.standard_encoder;
+    var buffer: [5000]u8 = undefined;
+    var encoded = buffer[0..base64.Base64Encoder.calcSize(output_raw.len)];
+    _ = encoder.encode(encoded, output_raw[0..output_raw.len]);
 
     assert(mem.eql(u8, expected_output_raw, output_raw));
-    assert(mem.eql(u8, expected_output_base64, output_base64));
+    assert(mem.eql(u8, expected_output_base64, encoded));
 }
 
 test "Fixed XOR" {
@@ -116,7 +118,7 @@ test "Implement repeating-key XOR" {
     assert(mem.eql(u8, expected[0..], output[0..expected.len]));
 }
 
-test "run Break repeating-key XOR" {
+test "Break repeating-key XOR" {
     assert(37 == %%cp.hamming_distance("this is a test", "wokka wokka!!!"));
 
     const hamming_test_str = "12345678";
