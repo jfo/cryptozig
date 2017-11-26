@@ -142,16 +142,16 @@ test "Break repeating-key XOR" {
 
 }
 
-test "AES in ECB mode" {
+test "run AES in ECB mode" {
     var buf: [1000 * 64]u8 = undefined;
     const input = %%cp.read_file_into_buf(buf[0..], "datafiles/7stripped.txt");
 
     var decoded_buf: [7000]u8 = undefined;
-    var decoded_input = base64.decode(decoded_buf[0..], input);
+    // var decoded_input = base64.decode(decoded_buf[0..], input);
     // warn("{}", decoded_input);
 
-    const key = "YELLOW SUBMARINE";
-    var out  = cp.thing(decoded_input, key);
+    // const key = "YELLOW SUBMARINE";
+    // var out  = cp.thing(decoded_input, key);
 
-    warn("\n{}\n", out);
+    // warn("\n{}\n", out);
 }
