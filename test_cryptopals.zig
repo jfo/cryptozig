@@ -130,12 +130,14 @@ test "run Break repeating-key XOR" {
 
     // something is rotten here
     var decoded_buf: [5000]u8 = undefined;
-    var decoded_input = base64.decode(decoded_buf[0..], input);
+    const decoder = base64.standard_decoder;
+    const size = %%decoder.calcSize(input);
+    _ = decoder.decode(decoded_buf[0..size], input);
 
     var dest: [5000]u8 = undefined;
-    const decrypted = cp.break_repeating_key_xor(dest[0..], decoded_input);
+    const decrypted = cp.break_repeating_key_xor(dest[0..], decoded_buf[0..size]);
+    warn("{}", dest);
 
-    warn("{}", decrypted);
 }
 
 test "AES in ECB mode" {
