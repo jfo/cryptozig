@@ -103,7 +103,7 @@ test "Detect single-character XOR" {
         i += 1;
     }
 
-    assert(mem.eql(u8, expected_output[0..], winner[0..expected_output.len]))
+    assert(mem.eql(u8, expected_output[0..], winner[0..expected_output.len]));
 }
 
 test "Implement repeating-key XOR" {

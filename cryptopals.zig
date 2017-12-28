@@ -16,16 +16,16 @@ pub fn read_file_into_buf(buf: []u8, filename: []const u8) -> %[]u8 {
     if (buf.len < filesize) return error.InsufficientBuffer;
     const input_size = %%file.read(buf[0..filesize]);
     const data = buf[0..input_size];
-    data
+    return data;
 }
 
 pub fn hexDigit(c: u8) -> u8 {
-    switch (c) {
+    return switch (c) {
         '0'...'9' => c - '0',
         'a'...'f' => c - 'a' + 10,
         'A'...'F' => c - 'A' + 10,
         else => u8(@maxValue(u8))
-    }
+    };
 }
 
 pub fn hexDigits(dest: []u8, src: []const u8) -> []u8 {
@@ -40,7 +40,7 @@ pub fn hexDigits(dest: []u8, src: []const u8) -> []u8 {
 
 pub fn one_char_xor(dest: []u8, src: []const u8, c:u8) -> []u8 {
     for (src) |char, i| dest[i] = char ^ c;
-    dest[0..]
+    return dest[0..];
 }
 
 // scores for both ascii and spaces.
@@ -51,9 +51,9 @@ pub fn scorer(src: []const u8) -> u32 {
             ' ' => u32(2),
             '!'...122 => 1,
             else => 0,
-        })
+        });
     }
-    count
+    return count;
 }
 
 pub fn printLn(line: []u8) -> void {
@@ -71,16 +71,16 @@ pub fn readlines(dest: [][]u8, content: []u8) -> [][]u8 {
         idx1 += 1;
         idx2 = i + 1;
     };
-    dest
+    return dest;
 }
 
 pub fn fixed_xor(dest: []u8, src: []const u8, src2: []const u8) -> []u8 {
     for (src) |c, i| dest[i] = c ^ src2[i];
-    dest[0..]
+    return dest[0..];
 }
 
 pub fn repeating_key_xor(dest: []u8, src: []const u8, key: []const u8) -> void {
-    for (src) |e, i| dest[i] = key[i % key.len] ^ e
+    for (src) |e, i| dest[i] = key[i % key.len] ^ e;
 }
 
 // this prints backwards rn a doy
@@ -98,7 +98,7 @@ pub fn hamming(x:u8, y:u8) -> u4 {
         dist += 1;
         val &= val - 1;
     }
-    dist
+    return dist;
 }
 
 error UnevenInput;
@@ -108,14 +108,14 @@ pub fn hamming_distance(x: []const u8, y: []const u8) -> %u32 {
     if (x.len != y.len) return error.UnevenInput;
     var out:u32 = 0;
     for (x) |cx, i| out += hamming(cx, y[i]);
-    out
+    return out;
 }
 
 pub fn keysize_hamming(src: []const u8, keysize: u32) -> %u32 {
     if (src.len < keysize * 2) return error.InsufficientInput;
     const chunk_one = src[0..keysize];
     const chunk_two = src[keysize..keysize*2];
-    %%hamming_distance(chunk_one, chunk_two)
+    return %%hamming_distance(chunk_one, chunk_two);
 }
 
 // up to 40
@@ -143,7 +143,7 @@ pub fn find_repeating_xor_keysize(src: []const u8) -> %u8 {
         }
         i += 1;
     }
-    likely_key_size
+    return likely_key_size;
 }
 
 fn detect_single_character_xor(input: []const u8) -> u8 {
@@ -165,7 +165,7 @@ fn detect_single_character_xor(input: []const u8) -> u8 {
         }
         i += 1;
     }
-    winner
+    return winner;
 }
 
 pub fn find_repeating_xor_key(output: []u8, input: []u8) -> []u8 {
@@ -183,7 +183,7 @@ pub fn find_repeating_xor_key(output: []u8, input: []u8) -> []u8 {
    for (transposed_chunks) |chunk, i| {
         output[i] = detect_single_character_xor(chunk);
     }
-    output[0..transposed_chunks.len]
+    return output[0..transposed_chunks.len];
 }
 
 
@@ -194,7 +194,7 @@ pub fn break_into_chunks(dest: [][]u8, src: []u8, chunksize: usize) -> [][]u8 {
         dest[idx] = src[chunksize * idx..chunksize * idx + chunksize];
         idx += 1;
     }
-    dest[0..src.len / chunksize]
+    return dest[0..src.len / chunksize];
 }
 
 pub fn transpose_blocks(dest: []u8, src: [][]const u8, keysize: u8) -> []u8 {
@@ -211,14 +211,14 @@ pub fn transpose_blocks(dest: []u8, src: [][]const u8, keysize: u8) -> []u8 {
         id += u32(src.len);
     }
 
-    dest[0..src.len*keysize]
+    return dest[0..src.len*keysize];
 }
 
 pub fn break_repeating_key_xor(dest:[]u8, src:[]u8) -> []u8 {
     var keybuf: [40]u8 = undefined;
     const key = find_repeating_xor_key(keybuf[0..], src);
     _ = repeating_key_xor(dest[0..], src, key);
-    dest[0..src.len]
+    return dest[0..src.len];
 }
 
 error LengthWrongTime;
