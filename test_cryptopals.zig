@@ -66,45 +66,45 @@ test "Single-byte XOR cipher" {
     assert(mem.eql(u8, expected_output, winner));
 }
 
-// // soooo much could be improved here.
-// test "Detect single-character XOR" {
-//     const expected_output = "Now that the party is jumping";
+// soooo much could be improved here.
+test "Detect single-character XOR" {
+    const expected_output = "Now that the party is jumping";
 
-//     var inc_allocator = try std.heap.IncrementingAllocator.init(10 * 1024 * 1024);
-//     defer inc_allocator.deinit();
-//     const allocator = &inc_allocator.allocator;
-//     var file = try std.io.File.openRead("datafiles/4.txt", allocator);
-//     defer file.close();
+    var inc_allocator = try std.heap.IncrementingAllocator.init(10 * 1024 * 1024);
+    defer inc_allocator.deinit();
+    const allocator = &inc_allocator.allocator;
+    var file = try std.io.File.openRead("datafiles/4.txt", allocator);
+    defer file.close();
 
-//     var buf: [30000]u8 = undefined;
+    var buf: [30000]u8 = undefined;
 
-//     const s:usize = try file.getEndPos();
-//     _ = file.read(buf[0..s]);
+    const s:usize = try file.getEndPos();
+    _ = file.read(buf[0..s]);
 
-//     var dest: [327][]u8 = undefined;
-//     const lines = cp.readlines(dest[0..], buf[0..s]);
+    var dest: [327][]u8 = undefined;
+    const lines = cp.readlines(dest[0..], buf[0..s]);
 
-//     var buffer: [500]u8 = undefined;
+    var buffer: [500]u8 = undefined;
 
-//     var i:u8 = 0;
+    var i:u8 = 0;
 
-//     var winner: [500]u8 = undefined;
-//     var last_winner_score:u32 = 0;
-//     while (i < @maxValue(u8)) {
-//         for (lines) |line| {
-//             var x = cp.hexDigits(buffer[0..], line);
-//             var l = cp.one_char_xor(buffer[0..], x, i);
-//             const score = cp.scorer(l);
-//             if (score > last_winner_score) {
-//                 last_winner_score = score;
-//                 for (l[0..l.len]) |b, idx| winner[idx] = b;
-//             }
-//         }
-//         i += 1;
-//     }
+    var winner: [500]u8 = undefined;
+    var last_winner_score:u32 = 0;
+    while (i < @maxValue(u8)) {
+        for (lines) |line| {
+            var x = cp.hexDigits(buffer[0..], line);
+            var l = cp.one_char_xor(buffer[0..], x, i);
+            const score = cp.scorer(l);
+            if (score > last_winner_score) {
+                last_winner_score = score;
+                for (l[0..l.len]) |b, idx| winner[idx] = b;
+            }
+        }
+        i += 1;
+    }
 
-//     assert(mem.eql(u8, expected_output[0..], winner[0..expected_output.len]));
-// }
+    assert(mem.eql(u8, expected_output[0..], winner[0..expected_output.len]));
+}
 
 test "Implement repeating-key XOR" {
     const key = "ICE";
