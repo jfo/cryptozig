@@ -66,45 +66,45 @@ test "Single-byte XOR cipher" {
     assert(mem.eql(u8, expected_output, winner));
 }
 
-// soooo much could be improved here.
-test "Detect single-character XOR" {
-    const expected_output = "Now that the party is jumping";
+// // soooo much could be improved here.
+// test "Detect single-character XOR" {
+//     const expected_output = "Now that the party is jumping";
 
-    var inc_allocator = %%std.heap.IncrementingAllocator.init(10 * 1024 * 1024);
-    defer inc_allocator.deinit();
-    const allocator = &inc_allocator.allocator;
-    var file = %%std.io.File.openRead("datafiles/4.txt", allocator);
-    defer file.close();
+//     var inc_allocator = try std.heap.IncrementingAllocator.init(10 * 1024 * 1024);
+//     defer inc_allocator.deinit();
+//     const allocator = &inc_allocator.allocator;
+//     var file = try std.io.File.openRead("datafiles/4.txt", allocator);
+//     defer file.close();
 
-    var buf: [30000]u8 = undefined;
+//     var buf: [30000]u8 = undefined;
 
-    const s:usize = %%file.getEndPos();
-    _ = file.read(buf[0..s]);
+//     const s:usize = try file.getEndPos();
+//     _ = file.read(buf[0..s]);
 
-    var dest: [327][]u8 = undefined;
-    const lines = cp.readlines(dest[0..], buf[0..s]);
+//     var dest: [327][]u8 = undefined;
+//     const lines = cp.readlines(dest[0..], buf[0..s]);
 
-    var buffer: [500]u8 = undefined;
+//     var buffer: [500]u8 = undefined;
 
-    var i:u8 = 0;
+//     var i:u8 = 0;
 
-    var winner: [500]u8 = undefined;
-    var last_winner_score:u32 = 0;
-    while (i < @maxValue(u8)) {
-        for (lines) |line| {
-            var x = cp.hexDigits(buffer[0..], line);
-            var l = cp.one_char_xor(buffer[0..], x, i);
-            const score = cp.scorer(l);
-            if (score > last_winner_score) {
-                last_winner_score = score;
-                for (l[0..l.len]) |b, idx| winner[idx] = b;
-            }
-        }
-        i += 1;
-    }
+//     var winner: [500]u8 = undefined;
+//     var last_winner_score:u32 = 0;
+//     while (i < @maxValue(u8)) {
+//         for (lines) |line| {
+//             var x = cp.hexDigits(buffer[0..], line);
+//             var l = cp.one_char_xor(buffer[0..], x, i);
+//             const score = cp.scorer(l);
+//             if (score > last_winner_score) {
+//                 last_winner_score = score;
+//                 for (l[0..l.len]) |b, idx| winner[idx] = b;
+//             }
+//         }
+//         i += 1;
+//     }
 
-    assert(mem.eql(u8, expected_output[0..], winner[0..expected_output.len]));
-}
+//     assert(mem.eql(u8, expected_output[0..], winner[0..expected_output.len]));
+// }
 
 test "Implement repeating-key XOR" {
     const key = "ICE";
@@ -119,21 +119,22 @@ test "Implement repeating-key XOR" {
 }
 
 test "Break repeating-key XOR" {
-    assert(37 == %%cp.hamming_distance("this is a test", "wokka wokka!!!"));
+    assert(37 == try cp.hamming_distance("this is a test", "wokka wokka!!!"));
 
     const hamming_test_str = "12345678";
-    assert(%%cp.hamming_distance("1234", "5678") ==
-            %%cp.keysize_hamming(hamming_test_str, 4));
-    assert(%%cp.hamming_distance("123", "456") ==
-            %%cp.keysize_hamming(hamming_test_str, 3));
+    assert((try cp.hamming_distance("1234", "5678")) ==
+            (try cp.keysize_hamming(hamming_test_str, 4)));
+
+    assert((try cp.hamming_distance("123", "456")) ==
+            (try cp.keysize_hamming(hamming_test_str, 3)));
 
     var buf: [100 * 64]u8 = undefined;
-    const input = %%cp.read_file_into_buf(buf[0..], "datafiles/6stripped.txt");
+    const input = try cp.read_file_into_buf(buf[0..], "datafiles/6stripped.txt");
 
     // something is rotten here
     var decoded_buf: [5000]u8 = undefined;
     const decoder = base64.standard_decoder;
-    const size = %%decoder.calcSize(input);
+    const size = try decoder.calcSize(input);
     _ = decoder.decode(decoded_buf[0..size], input);
 
     var dest: [5000]u8 = undefined;
@@ -144,14 +145,14 @@ test "Break repeating-key XOR" {
 
 test "run AES in ECB mode" {
     var buf: [1000 * 64]u8 = undefined;
-    const input = %%cp.read_file_into_buf(buf[0..], "datafiles/7stripped.txt");
+    const input = try cp.read_file_into_buf(buf[0..], "datafiles/7stripped.txt");
 
     var decoded_buf: [7000]u8 = undefined;
-    // var decoded_input = base64.decode(decoded_buf[0..], input);
-    // warn("{}", decoded_input);
+    var decoded_input = base64.decode(decoded_buf[0..], input);
+    warn("{}", decoded_input);
 
-    // const key = "YELLOW SUBMARINE";
-    // var out  = cp.thing(decoded_input, key);
+    const key = "YELLOW SUBMARINE";
+    var out  = cp.thing(decoded_input, key);
 
-    // warn("\n{}\n", out);
+    warn("\n{}\n", out);
 }
