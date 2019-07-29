@@ -10,7 +10,7 @@ test "Convert hex to base64" {
     const expected_output_raw = "I'm killing your brain like a poisonous mushroom";
     const expected_output_base64 = "SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t";
 
-    var dest:[src.len]u8 = undefined;
+    var dest: [src.len]u8 = undefined;
     const output_raw = cp.hexDigits(dest[0..], src[0..]);
 
     const encoder = base64.standard_encoder;
@@ -29,16 +29,16 @@ test "Fixed XOR" {
     const expected_output_str = "746865206b696420646f6e277420706c6179";
     const expected_output_raw = "the kid don't play";
 
-    var hexed:[src.len / 2]u8 = undefined;
+    var hexed: [src.len / 2]u8 = undefined;
     const output_raw = cp.hexDigits(hexed[0..], src[0..]);
 
-    var hexed2:[hexed.len]u8 = undefined;
+    var hexed2: [hexed.len]u8 = undefined;
     const output_raw2 = cp.hexDigits(hexed2[0..], src2[0..]);
 
-    var hexed3:[hexed.len]u8 = undefined;
+    var hexed3: [hexed.len]u8 = undefined;
     const exp = cp.hexDigits(hexed3[0..], expected_output_str[0..]);
 
-    var dest:[hexed.len]u8 = undefined;
+    var dest: [hexed.len]u8 = undefined;
     const out = cp.fixed_xor(dest[0..], hexed[0..], hexed2[0..]);
 
     assert(mem.eql(u8, expected_output_raw, out));
@@ -48,16 +48,16 @@ test "Single-byte XOR cipher" {
     const src = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
     const expected_output = "Cooking MC's like a pound of bacon";
 
-    var hexed:[src.len / 2]u8 = undefined;
+    var hexed: [src.len / 2]u8 = undefined;
     const src_raw = cp.hexDigits(hexed[0..], src[0..]);
 
-    var i:u8 = 0;
-    var winner:[src.len / 2]u8 = undefined;
-    var dest:[src.len / 2]u8 = undefined;
+    var i: u8 = 0;
+    var winner: [src.len / 2]u8 = undefined;
+    var dest: [src.len / 2]u8 = undefined;
 
     while (i < @maxValue(u8)) {
         var out_xor = cp.one_char_xor(dest[0..], src_raw, i);
-        i+=1;
+        i += 1;
         if (cp.scorer(dest) > cp.scorer(winner)) {
             mem.copy(u8, winner[0..], dest[0..]);
         }
@@ -78,7 +78,7 @@ test "Detect single-character XOR" {
 
     var buf: [30000]u8 = undefined;
 
-    const s:usize = try file.getEndPos();
+    const s: usize = try file.getEndPos();
     _ = file.read(buf[0..s]);
 
     var dest: [327][]u8 = undefined;
@@ -86,10 +86,10 @@ test "Detect single-character XOR" {
 
     var buffer: [500]u8 = undefined;
 
-    var i:u8 = 0;
+    var i: u8 = 0;
 
     var winner: [500]u8 = undefined;
-    var last_winner_score:u32 = 0;
+    var last_winner_score: u32 = 0;
     while (i < @maxValue(u8)) {
         for (lines) |line| {
             var x = cp.hexDigits(buffer[0..], line);
@@ -110,7 +110,7 @@ test "Implement repeating-key XOR" {
     const key = "ICE";
     const src = "Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal";
     const expected_str = "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f";
-    var buffer1 :[500]u8 = undefined;
+    var buffer1: [500]u8 = undefined;
     const expected = cp.hexDigits(buffer1[0..expected_str.len], expected_str);
 
     var output: [256]u8 = undefined;
@@ -123,10 +123,10 @@ test "Break repeating-key XOR" {
 
     const hamming_test_str = "12345678";
     assert((try cp.hamming_distance("1234", "5678")) ==
-            (try cp.keysize_hamming(hamming_test_str, 4)));
+        (try cp.keysize_hamming(hamming_test_str, 4)));
 
     assert((try cp.hamming_distance("123", "456")) ==
-            (try cp.keysize_hamming(hamming_test_str, 3)));
+        (try cp.keysize_hamming(hamming_test_str, 3)));
 
     var buf: [100 * 64]u8 = undefined;
     const input = try cp.read_file_into_buf(buf[0..], "datafiles/6stripped.txt");
@@ -140,7 +140,6 @@ test "Break repeating-key XOR" {
     var dest: [5000]u8 = undefined;
     const decrypted = cp.break_repeating_key_xor(dest[0..], decoded_buf[0..size]);
     warn("{}", dest);
-
 }
 
 test "run AES in ECB mode" {
@@ -152,7 +151,7 @@ test "run AES in ECB mode" {
     warn("{}", decoded_input);
 
     const key = "YELLOW SUBMARINE";
-    var out  = cp.thing(decoded_input, key);
+    var out = cp.thing(decoded_input, key);
 
     warn("\n{}\n", out);
 }
