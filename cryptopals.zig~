@@ -5,10 +5,10 @@ const mem = @import("std").mem;
 // none of this is in any way done or intended beyond my own debuggery use.
 pub fn read_file_into_buf(buf: []u8, filename: []const u8) ![]u8 {
     // // open the source file
-    var allocbuf: [10 * 1024 * 1024]u8 = undefined;
-    const allocator = &std.heap.FixedBufferAllocator.init(&allocbuf).allocator;
-
-    var file = try std.fs.File.openRead(filename);
+    var inc_allocator = try std.heap.IncrementingAllocator.init(10 * 1024 * 1024);
+    defer inc_allocator.deinit();
+    const allocator = &inc_allocator.allocator;
+    var file = try std.io.File.openRead(filename, allocator);
     defer file.close();
 
     const filesize: usize = try file.getEndPos();
@@ -23,7 +23,7 @@ pub fn hexDigit(c: u8) u8 {
         '0'...'9' => c - '0',
         'a'...'f' => c - 'a' + 10,
         'A'...'F' => c - 'A' + 10,
-        else => @intCast(u8, std.math.maxInt(u8)),
+        else => u8(std.math.maxInt(u8)),
     };
 }
 
@@ -47,7 +47,7 @@ pub fn scorer(src: []const u8) u32 {
     var count: u32 = 0;
     for (src) |char| {
         count += (switch (char) {
-            ' ' => @intCast(u32, 2),
+            ' ' => u32(2),
             '!'...122 => 1,
             else => 0,
         });
@@ -128,10 +128,10 @@ pub fn find_repeating_xor_keysize(src: []const u8) !u8 {
         var out: f32 = 0.0;
         var idx: u32 = 0;
         while (idx < src.len - (idx * i)) {
-            out += @intToFloat(f32, try keysize_hamming(src[i * idx ..], i)) / @intToFloat(f32, i);
+            out += f32(try keysize_hamming(src[i * idx ..], i)) / f32(i);
             idx += 1;
         }
-        const distance: f32 = out / @intToFloat(f32,idx);
+        const distance: f32 = out / f32(idx);
 
         if (distance < smallest_edit_size) {
             smallest_edit_size = distance;
@@ -147,7 +147,7 @@ fn detect_single_character_xor(input: []const u8) u8 {
 
     var winner: u8 = undefined;
     var last_winner_score: u32 = 0;
-    while (i < std.math.maxInt(u8)) {
+    while (i < @maxValue(u8)) {
         var buffer: [500]u8 = undefined;
 
         var l = one_char_xor(buffer[0..], input, i);
@@ -164,7 +164,7 @@ fn detect_single_character_xor(input: []const u8) u8 {
     return winner;
 }
 
-pub fn find_repeating_xor_key(output: []u8, input: []u8) ![]u8 {
+pub fn find_repeating_xor_key(output: []u8, input: []u8) []u8 {
     const keysize = try find_repeating_xor_keysize(input);
 
     var dest: [64 * 64][]u8 = undefined;
@@ -203,15 +203,15 @@ pub fn transpose_blocks(dest: []u8, src: [][]const u8, keysize: u8) []u8 {
             dest[idx + id] = row[i];
         }
         i += 1;
-        id += @intCast(u32,src.len);
+        id += u32(src.len);
     }
 
     return dest[0 .. src.len * keysize];
 }
 
-pub fn break_repeating_key_xor(dest: []u8, src: []u8) ![]u8 {
+pub fn break_repeating_key_xor(dest: []u8, src: []u8) []u8 {
     var keybuf: [40]u8 = undefined;
-    const key = try find_repeating_xor_key(keybuf[0..], src);
+    const key = find_repeating_xor_key(keybuf[0..], src);
     _ = repeating_key_xor(dest[0..], src, key);
     return dest[0..src.len];
 }

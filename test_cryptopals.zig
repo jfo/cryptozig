@@ -55,7 +55,7 @@ test "Single-byte XOR cipher" {
     var winner: [src.len / 2]u8 = undefined;
     var dest: [src.len / 2]u8 = undefined;
 
-    while (i < @maxValue(u8)) {
+    while (i < std.math.maxInt(u8)) {
         var out_xor = cp.one_char_xor(dest[0..], src_raw, i);
         i += 1;
         if (cp.scorer(dest) > cp.scorer(winner)) {
@@ -70,16 +70,16 @@ test "Single-byte XOR cipher" {
 test "Detect single-character XOR" {
     const expected_output = "Now that the party is jumping";
 
-    var inc_allocator = try std.heap.IncrementingAllocator.init(10 * 1024 * 1024);
-    defer inc_allocator.deinit();
-    const allocator = &inc_allocator.allocator;
-    var file = try std.io.File.openRead("datafiles/4.txt", allocator);
+    var allocbuf: [10 * 1024 * 1024]u8 = undefined;
+    const allocator = &std.heap.FixedBufferAllocator.init(&allocbuf).allocator;
+
+    var file = try std.fs.File.openRead("datafiles/4.txt");
     defer file.close();
 
     var buf: [30000]u8 = undefined;
 
     const s: usize = try file.getEndPos();
-    _ = file.read(buf[0..s]);
+    _ = try file.read(buf[0..s]);
 
     var dest: [327][]u8 = undefined;
     const lines = cp.readlines(dest[0..], buf[0..s]);
@@ -90,7 +90,7 @@ test "Detect single-character XOR" {
 
     var winner: [500]u8 = undefined;
     var last_winner_score: u32 = 0;
-    while (i < @maxValue(u8)) {
+    while (i < std.math.maxInt(u8)) {
         for (lines) |line| {
             var x = cp.hexDigits(buffer[0..], line);
             var l = cp.one_char_xor(buffer[0..], x, i);
@@ -135,7 +135,7 @@ test "Break repeating-key XOR" {
     var decoded_buf: [5000]u8 = undefined;
     const decoder = base64.standard_decoder;
     const size = try decoder.calcSize(input);
-    _ = decoder.decode(decoded_buf[0..size], input);
+    _ = try decoder.decode(decoded_buf[0..size], input);
 
     var dest: [5000]u8 = undefined;
     const decrypted = cp.break_repeating_key_xor(dest[0..], decoded_buf[0..size]);
@@ -147,10 +147,10 @@ test "run AES in ECB mode" {
     const input = try cp.read_file_into_buf(buf[0..], "datafiles/7stripped.txt");
 
     var decoded_buf: [7000]u8 = undefined;
-    var decoded_input = base64.decode(decoded_buf[0..], input);
+    const key = "YELLOW SUBMARINE";
+    var decoded_input = decoded_buf[0..try base64.standard_decoder.calcSize(key)];
     warn("{}", decoded_input);
 
-    const key = "YELLOW SUBMARINE";
     var out = cp.thing(decoded_input, key);
 
     warn("\n{}\n", out);
