@@ -70,7 +70,7 @@ test "Single-byte XOR cipher" {
 test "Detect single-character XOR" {
     const expected_output = "Now that the party is jumping";
 
-    var allocbuf: [10 * 1024 * 1024]u8 = undefined;
+    var allocbuf: [10 * 1024]u8 = undefined;
     const allocator = &std.heap.FixedBufferAllocator.init(&allocbuf).allocator;
 
     var file = try std.fs.File.openRead("datafiles/4.txt");
@@ -128,12 +128,12 @@ test "Break repeating-key XOR" {
     assert((try cp.hamming_distance("123", "456")) ==
         (try cp.keysize_hamming(hamming_test_str, 3)));
 
-    var buf: [100 * 64]u8 = undefined;
-    const input = try cp.read_file_into_buf(buf[0..], "datafiles/6stripped.txt");
+    var buf: [64000]u8 = undefined;
+    const input = try cp.read_file_into_buf(buf[0..], "datafiles/6.txt");
 
-    // something is rotten here
+    // TODO: something is rotten here
     var decoded_buf: [5000]u8 = undefined;
-    const decoder = base64.standard_decoder;
+    const decoder1 = base64.standard_decoder;
     const size = try decoder.calcSize(input);
     _ = try decoder.decode(decoded_buf[0..size], input);
 
