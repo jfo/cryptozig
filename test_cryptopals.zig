@@ -129,13 +129,13 @@ test "Break repeating-key XOR" {
         (try cp.keysize_hamming(hamming_test_str, 3)));
 
     var buf: [64000]u8 = undefined;
-    const input = try cp.read_file_into_buf(buf[0..], "datafiles/6.txt");
+    const input = try cp.read_file_into_buf(buf[0..], "datafiles/6stripped.txt");
 
     // TODO: something is rotten here
     var decoded_buf: [5000]u8 = undefined;
-    const decoder1 = base64.standard_decoder;
-    const size = try decoder.calcSize(input);
-    _ = try decoder.decode(decoded_buf[0..size], input);
+    const decoder = base64.standard_decoder_unsafe;
+    const size = decoder.calcSize(input);
+    _ = decoder.decode(decoded_buf[0..size], input);
 
     var dest: [5000]u8 = undefined;
     const decrypted = cp.break_repeating_key_xor(dest[0..], decoded_buf[0..size]);
