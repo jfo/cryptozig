@@ -215,13 +215,3 @@ pub fn break_repeating_key_xor(dest: []u8, src: []u8) ![]u8 {
     _ = repeating_key_xor(dest[0..], src, key);
     return dest[0..src.len];
 }
-
-pub fn thing(src: []const u8, key: []const u8) !void {
-    if (src.len % key.len != 0 or key.len != 16) {
-        return error.LengthWrongTime;
-    }
-
-    warn("\n{}\n", src.len);
-    warn("{}\n", key.len);
-    warn("{}\n", src.len % key.len);
-}

@@ -131,7 +131,6 @@ test "Break repeating-key XOR" {
     var buf: [64000]u8 = undefined;
     const input = try cp.read_file_into_buf(buf[0..], "datafiles/6stripped.txt");
 
-    // TODO: something is rotten here
     var decoded_buf: [5000]u8 = undefined;
     const decoder = base64.standard_decoder_unsafe;
     const size = decoder.calcSize(input);
@@ -140,18 +139,4 @@ test "Break repeating-key XOR" {
     var dest: [5000]u8 = undefined;
     const decrypted = cp.break_repeating_key_xor(dest[0..], decoded_buf[0..size]);
     warn("{}", dest);
-}
-
-test "run AES in ECB mode" {
-    var buf: [1000 * 64]u8 = undefined;
-    const input = try cp.read_file_into_buf(buf[0..], "datafiles/7stripped.txt");
-
-    var decoded_buf: [7000]u8 = undefined;
-    const key = "YELLOW SUBMARINE";
-    var decoded_input = decoded_buf[0..try base64.standard_decoder.calcSize(key)];
-    warn("{}", decoded_input);
-
-    var out = cp.thing(decoded_input, key);
-
-    warn("\n{}\n", out);
 }
