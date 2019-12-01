@@ -148,7 +148,7 @@ fn detect_single_character_xor(input: []const u8) u8 {
     var winner: u8 = undefined;
     var last_winner_score: u32 = 0;
     while (i < std.math.maxInt(u8)) {
-        var buffer: [500]u8 = undefined;
+        var buffer: [5000]u8 = undefined;
 
         var l = one_char_xor(buffer[0..], input, i);
 
