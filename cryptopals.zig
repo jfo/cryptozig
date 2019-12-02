@@ -131,7 +131,7 @@ pub fn find_repeating_xor_keysize(src: []const u8) !u8 {
             out += @intToFloat(f32, try keysize_hamming(src[i * idx ..], i)) / @intToFloat(f32, i);
             idx += 1;
         }
-        const distance: f32 = out / @intToFloat(f32,idx);
+        const distance: f32 = out / @intToFloat(f32, idx);
 
         if (distance < smallest_edit_size) {
             smallest_edit_size = distance;
@@ -203,7 +203,7 @@ pub fn transpose_blocks(dest: []u8, src: [][]const u8, keysize: u8) []u8 {
             dest[idx + id] = row[i];
         }
         i += 1;
-        id += @intCast(u32,src.len);
+        id += @intCast(u32, src.len);
     }
 
     return dest[0 .. src.len * keysize];

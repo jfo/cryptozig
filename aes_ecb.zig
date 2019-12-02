@@ -1,18 +1,31 @@
 const std = @import("std");
+const warn = std.debug.warn;
 const assert = std.debug.assert;
 
-fn aes128ecb(key: []const u8, input: []const u8, output: []u8) []const u8 {
+var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+const alloc = arena.allocator.alloc;
+
+fn subBytes() void {}
+fn shiftRows() void  {}
+fn mixColumns() void  {}
+fn addRoundKey() void  {}
+
+fn aes128ecb(key: []const u8, input: []const u8) ![]const u8 {
+    const output = try alloc(u8, input.len);
     for (input) |e, i| output[i] = e;
     return output;
 }
 
-test "run AES in ECB mode" {
+// test "run AES in ECB mode" {
+pub fn main() !void {
+    defer arena.deinit();
+
     const key: []const u8 = "YELLOW SUBMARINE";
     const input: []const u8 = "abcdefghijklmnop";
-    const expected_output = "\x79\xf7\xdd\x52\x0b\xec\x8f\xb7\x25\xd9\xef\xe2\xec\xb3\xc4\xb1\xdc\x76\x91\x85\xb4\xea\xcf\xc8\x44\xba\xea\x1f\xad\x49\xe8\xa1";
+    const expected_output = "\xBD\xB1\x84\xD4N\x1F\xC1\xD3\x06\tE\xB5<\x99OH`\xFA6p~E\xF4\x99\xDB\xA0\xF2[\x92#\x01\xA5";
 
-    var outbuf: [16]u8 = undefined;
-    _ = aes128ecb(key, input, outbuf[0..]);
+    const output = try aes128ecb(key, input);
 
-    assert(std.mem.eql(u8, outbuf, expected_output));
+    warn("{}\n", output);
+    // assert(std.mem.eql(u8, outbuf, expected_output));
 }
