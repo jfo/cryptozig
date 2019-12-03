@@ -5,12 +5,12 @@ const std = @import("std");
 const warn = std.debug.warn;
 const assert = std.debug.assert;
 
-const roundConstant: [16]u32 = undefined;
+const roundConstant = [_]u32{ '\x01', '\x02', '\x04', '\x08', '\x10', '\x20', '\x40', '\x80', '\x1B', '\x36' };
 
 fn subBytes() void {}
-fn shiftRows() void  {}
-fn mixColumns() void  {}
-fn addRoundKey() void  {}
+fn shiftRows() void {}
+fn mixColumns() void {}
+fn addRoundKey() void {}
 
 fn rotWord(word: u32) u32 {
     return word << 8 | word >> 24;
@@ -20,14 +20,14 @@ fn subWord(word: u32) u32 {
     return word;
 }
 
-fn keyExpansion(key: []const u8) ![]const u8   {
+fn keyExpansion(key: []const u8) ![]const u8 {
     const w = try alloc(u32, 44);
     for (@bytesToSlice(u32, key)) |e, i| w[i] = e;
 
-    var i:u8 = 16;
+    var i: u8 = 4;
     while (i < 44) : (i += 1) {
         var temp: u32 = w[i - 1];
-        if (i % 4 ==  0) temp = subWord(rotWord(temp)) ^ roundConstant[i / 4];
+        if (i % 4 == 0) temp = subWord(rotWord(temp)) ^ roundConstant[i / 4 - 1];
         w[i] = w[i - 4] ^ temp;
     }
 
