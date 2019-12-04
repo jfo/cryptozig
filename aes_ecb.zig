@@ -43,25 +43,31 @@ fn subWord(word: u32) u32 {
     }
 
     var out: u32 = 0;
-    out = (out | outBuf[0]) << 8;
-    out = (out | outBuf[1]) << 8;
+    out = (out | outBuf[3]) << 8;
     out = (out | outBuf[2]) << 8;
-    out = (out | outBuf[3]);
+    out = (out | outBuf[1]) << 8;
+    out = (out | outBuf[0]);
     return out;
 }
 
 fn keyExpansion(key: []const u8) ![]const u8 {
-    const w = try alloc(u32, 44);
-    for (@bytesToSlice(u32, key)) |e, i| w[i] = e;
+    const w = try alloc(u8, 176);
+    for (key) |e, i| w[i] = e;
 
-    var i: u8 = 4;
-    while (i < 44) : (i += 1) {
-        var temp: u32 = w[i - 1];
-        if (i % 4 == 0) temp = subWord(rotWord(temp)) ^ (roundConstant[i / 4 - 1] << 24);
-        w[i] = w[((i / 4) - 1) * 4] ^ temp;
+    var i: u16 = 16;
+    while (i < 176) : (i += 4) {
+        var temp = w[i - 4 .. i];
+        // if (i % 16 == 0) temp = subWord(rotWord(temp)) ^ (roundConstant[i / 16 - 4] << 24);
+        // w[i] = w[((i / 4) - 1) * 4] ^ temp;
+
+        const x = i % 4;
+        w[i] = temp[x];
+        w[i + 1] = temp[x + 1];
+        w[i + 2] = temp[x + 2];
+        w[i + 3] = temp[x + 3];
     }
 
-    return @sliceToBytes(w);
+    return w;
 }
 
 fn aes128ecb(key: []const u8, input: []const u8) ![]const u8 {
