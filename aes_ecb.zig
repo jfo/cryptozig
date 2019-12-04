@@ -57,8 +57,8 @@ fn keyExpansion(key: []const u8) ![]const u8 {
     var i: u8 = 4;
     while (i < 44) : (i += 1) {
         var temp: u32 = w[i - 1];
-        if (i % 4 == 0) temp = subWord(rotWord(temp)) ^ (roundConstant[i / 4 - 1]);
-        w[i] = w[i - 4] ^ temp;
+        if (i % 4 == 0) temp = subWord(rotWord(temp)) ^ (roundConstant[i / 4 - 1] << 24);
+        w[i] = w[((i / 4) - 1) * 4] ^ temp;
     }
 
     return @sliceToBytes(w);
