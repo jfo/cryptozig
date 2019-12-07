@@ -5,7 +5,7 @@ const std = @import("std");
 const warn = std.debug.warn;
 const assert = std.debug.assert;
 
-const roundConstant = [_]u32{ '\x01', '\x02', '\x04', '\x08', '\x10', '\x20', '\x40', '\x80', '\x1B', '\x36' };
+const roundConstant = [_]u8{ '\x01', '\x02', '\x04', '\x08', '\x10', '\x20', '\x40', '\x80', '\x1B', '\x36' };
 
 const sBox = [16][16]u8{
     [_]u8{ '\x63', '\x7c', '\x77', '\x7b', '\xf2', '\x6b', '\x6f', '\xc5', '\x30', '\x01', '\x67', '\x2b', '\xfe', '\xd7', '\xab', '\x76' },
@@ -31,22 +31,25 @@ fn shiftRows() void {}
 fn mixColumns() void {}
 fn addRoundKey() void {}
 
-fn rotWord(word: u32) u32 {
-    return word << 8 | word >> 24;
+fn rotWord(word: []u8) ![]u8 {
+    var out = try alloc(u8, 4);
+    for (word) |b, i| out[i] = b;
+    const temp = out[0];
+    out[0] = out[1];
+    out[1] = out[2];
+    out[2] = out[3];
+    out[3] = temp;
+
+    return out[0..];
 }
 
-fn subWord(word: u32) u32 {
-    const wordSlice = @sliceToBytes(([_]u32{word})[0..]);
-    var outBuf = [_]u8{ 0, 0, 0, 0 };
-    for (wordSlice) |w, i| {
-        outBuf[i] = sBox[(w & 240) >> 4][w & 15];
+fn subWord(word: []u8) ![]u8 {
+    var out = try alloc(u8, 4);
+
+    for (word) |w, i| {
+        out[i] = sBox[(w & 240) >> 4][w & 15];
     }
 
-    var out: u32 = 0;
-    out = (out | outBuf[3]) << 8;
-    out = (out | outBuf[2]) << 8;
-    out = (out | outBuf[1]) << 8;
-    out = (out | outBuf[0]);
     return out;
 }
 
@@ -57,14 +60,15 @@ fn keyExpansion(key: []const u8) ![]const u8 {
     var i: u16 = 16;
     while (i < 176) : (i += 4) {
         var temp = w[i - 4 .. i];
-        // if (i % 16 == 0) temp = subWord(rotWord(temp)) ^ (roundConstant[i / 16 - 4] << 24);
-        // w[i] = w[((i / 4) - 1) * 4] ^ temp;
+        if (i % 16 == 0) {
+            temp = try subWord(try rotWord(temp));
+            temp[0] ^= roundConstant[i / 16 - 1];
+        }
 
-        const x = i % 4;
-        w[i] = temp[x];
-        w[i + 1] = temp[x + 1];
-        w[i + 2] = temp[x + 2];
-        w[i + 3] = temp[x + 3];
+        w[i] = temp[0] ^ w[i - 16];
+        w[i + 1] = temp[1] ^ w[i - 15];
+        w[i + 2] = temp[2] ^ w[i - 14];
+        w[i + 3] = temp[3] ^ w[i - 13];
     }
 
     return w;
@@ -78,20 +82,19 @@ fn aes128ecb(key: []const u8, input: []const u8) ![]const u8 {
 
 var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
 const alloc = arena.allocator.alloc;
+const create = arena.allocator.create;
 
 pub fn main() !void {
     defer arena.deinit();
 
     // const key: []const u8 = "YELLOW SUBMARINE";
     // const key: []const u8 = "Thats my Kung Fu";
-    const key: []const u8 = "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff";
-    const input: []const u8 = "abcdefghijklmnop";
-    const expected_output = "\xBD\xB1\x84\xD4N\x1F\xC1\xD3\x06\tE\xB5<\x99OH`\xFA6p~E\xF4\x99\xDB\xA0\xF2[\x92#\x01\xA5";
+    // const input: []const u8 = "abcdefghijklmnop";
 
-    // // const output = try aes128ecb(key, input);
-    const output = try keyExpansion(key);
+    const key: []const u8 = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f";
+    const expectedExpandedKey = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\xd6\xaa\x74\xfd\xd2\xaf\x72\xfa\xda\xa6\x78\xf1\xd6\xab\x76\xfe\xb6\x92\xcf\x0b\x64\x3d\xbd\xf1\xbe\x9b\xc5\x00\x68\x30\xb3\xfe\xb6\xff\x74\x4e\xd2\xc2\xc9\xbf\x6c\x59\x0c\xbf\x04\x69\xbf\x41\x47\xf7\xf7\xbc\x95\x35\x3e\x03\xf9\x6c\x32\xbc\xfd\x05\x8d\xfd\x3c\xaa\xa3\xe8\xa9\x9f\x9d\xeb\x50\xf3\xaf\x57\xad\xf6\x22\xaa\x5e\x39\x0f\x7d\xf7\xa6\x92\x96\xa7\x55\x3d\xc1\x0a\xa3\x1f\x6b\x14\xf9\x70\x1a\xe3\x5f\xe2\x8c\x44\x0a\xdf\x4d\x4e\xa9\xc0\x26\x47\x43\x87\x35\xa4\x1c\x65\xb9\xe0\x16\xba\xf4\xae\xbf\x7a\xd2\x54\x99\x32\xd1\xf0\x85\x57\x68\x10\x93\xed\x9c\xbe\x2c\x97\x4e\x13\x11\x1d\x7f\xe3\x94\x4a\x17\xf3\x07\xa7\x8b\x4d\x2b\x30\xc5";
 
-    // @compileLog(@typeOf(output));
-    warn("{}\n", output);
-    // assert(std.mem.eql(u8, outbuf, expected_output));
+    const expandedKey = try keyExpansion(key);
+    // warn("{}", expandedKey);
+    assert(std.mem.eql(u8, expandedKey, expectedExpandedKey));
 }
