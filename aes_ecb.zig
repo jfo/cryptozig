@@ -33,6 +33,24 @@ fn shiftRows() void {}
 fn mixColumns() void {}
 fn addRoundKey() void {}
 
+fn sixteenToFourByFour(input: []const u8) !*[4][4]u8 {
+    assert(input.len == 16);
+    const output = try create([4][4]u8);
+    for (input) |e, i| output[i / 4][i % 4] = e;
+    return output;
+}
+
+fn invertFourByFour(input: *[4][4]u8) !*[4][4]u8 {
+    const output = try create([4][4]u8);
+
+    for (input) |inputElement, iex| {
+        for (inputElement) |e, i| {
+            output[i][iex] = e;
+        }
+    }
+    return output;
+}
+
 fn rotWord(word: []u8) ![]u8 {
     var out = try alloc(u8, 4);
     for (word) |b, i| out[i] = b;
@@ -89,13 +107,11 @@ const create = arena.allocator.create;
 pub fn main() !void {
     defer arena.deinit();
 
-    var buf: [64000]u8 = undefined;
-    const input = try read(buf[0..], "datafiles/7stripped.txt");
-    // const key: []const u8 = "YELLOW SUBMARINE";
-    // const key: []const u8 = "Thats my Kung Fu";
-    // const input: []const u8 = "abcdefghijklmnop";
+    // var buf: [64000]u8 = undefined;
+    // const input = try read(buf[0..], "datafiles/7stripped.txt");
 
-    warn("{}", input.len);
+    const key: []const u8 = "YELLOW SUBMARINE";
+    const input: []const u8 = "abcdefghijklmnop";
 }
 
 test "key expansion" {
@@ -103,4 +119,14 @@ test "key expansion" {
     const expectedExpandedKey = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\xd6\xaa\x74\xfd\xd2\xaf\x72\xfa\xda\xa6\x78\xf1\xd6\xab\x76\xfe\xb6\x92\xcf\x0b\x64\x3d\xbd\xf1\xbe\x9b\xc5\x00\x68\x30\xb3\xfe\xb6\xff\x74\x4e\xd2\xc2\xc9\xbf\x6c\x59\x0c\xbf\x04\x69\xbf\x41\x47\xf7\xf7\xbc\x95\x35\x3e\x03\xf9\x6c\x32\xbc\xfd\x05\x8d\xfd\x3c\xaa\xa3\xe8\xa9\x9f\x9d\xeb\x50\xf3\xaf\x57\xad\xf6\x22\xaa\x5e\x39\x0f\x7d\xf7\xa6\x92\x96\xa7\x55\x3d\xc1\x0a\xa3\x1f\x6b\x14\xf9\x70\x1a\xe3\x5f\xe2\x8c\x44\x0a\xdf\x4d\x4e\xa9\xc0\x26\x47\x43\x87\x35\xa4\x1c\x65\xb9\xe0\x16\xba\xf4\xae\xbf\x7a\xd2\x54\x99\x32\xd1\xf0\x85\x57\x68\x10\x93\xed\x9c\xbe\x2c\x97\x4e\x13\x11\x1d\x7f\xe3\x94\x4a\x17\xf3\x07\xa7\x8b\x4d\x2b\x30\xc5";
     const expandedKey = try keyExpansion(key);
     assert(std.mem.eql(u8, expandedKey, expectedExpandedKey));
+}
+
+test "4 by 4" {
+    const sample: []const u8 = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f";
+    const out = try sixteenToFourByFour(sample);
+    const invertedOut = try invertFourByFour(out);
+
+    for (out) |e| warn("{}", e);
+    for (invertedOut) |e| warn("{}", e);
+    // assert(std.mem.eql(u8, expected[0..], out));
 }
