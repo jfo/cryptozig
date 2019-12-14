@@ -53,9 +53,35 @@ fn shiftRows(input: *[4][4]u8) !void {
     for (input[3]) |_, i| input[3][i] = y[i];
 }
 
-fn mixColumns(input: *[4][4]u8) !void {}
+fn mixColumn(r: *[4]u8) void {
+    var a: [4]u8 = undefined;
+    var b: [4]u8 = undefined;
 
-fn addRoundKey() void {}
+    var c: u8 = 0;
+    while (c < 4) : (c += 1) {
+        a[c] = r[c];
+        b[c] = gmul(r[c], 2);
+    }
+    r[0] = b[0] ^ a[3] ^ a[2] ^ b[1] ^ a[1];
+    r[1] = b[1] ^ a[0] ^ a[3] ^ b[2] ^ a[2];
+    r[2] = b[2] ^ a[1] ^ a[0] ^ b[3] ^ a[3];
+    r[3] = b[3] ^ a[2] ^ a[1] ^ b[0] ^ a[0];
+}
+
+fn mixColumns(input: *[4][4]u8) void {
+    mixColumn(&input[0]);
+    mixColumn(&input[1]);
+    mixColumn(&input[2]);
+    mixColumn(&input[3]);
+}
+
+fn addRoundKey(input: *[4][4]u8, roundKeyMatrix: *const [4][4]u8) void {
+    for (input) |inputElement, iex| {
+        for (inputElement) |e, i| {
+            input[iex][i] = e ^ roundKeyMatrix[iex][i];
+        }
+    }
+}
 
 fn sixteenToFourByFour(input: []const u8) ![4][4]u8 {
     assert(input.len == 16);
@@ -143,25 +169,26 @@ fn gmul(x: u8, y: u8) u8 {
 
 fn aes128ecb(key: []const u8, input: []const u8) ![]const u8 {
     const inputMatrix = try sixteenToFourByFour(input);
-    const outputMatrix = try create([4][4]u8);
-    var outputMatrixX = outputMatrix.*;
+    const temp = try create([4][4]u8);
+    var outputMatrix = temp.*;
 
     const expandedKey = try keyExpansion(key);
-    const roundOneKeyMatrix = try sixteenToFourByFour(expandedKey[0..16]);
 
-    // initial round 0, addRoundKey
     for (inputMatrix) |inputElement, iex| {
         for (inputElement) |e, i| {
-            // outputMatrixX[iex][i] = e ^ roundOneKeyMatrix[iex][i];
-            outputMatrixX[iex][i] = e;
+            outputMatrix[iex][i] = e;
         }
     }
 
+    // initial round 0, addRoundKey
+    const roundOneKeyMatrix = try sixteenToFourByFour(expandedKey[0..16]);
+    addRoundKey(&outputMatrix, &roundOneKeyMatrix);
+
     // round 1 - 9
-    _ = try subBytes(&outputMatrixX);
-    const outputMatrixInverted = try invertFourByFour(outputMatrixX);
-    _ = try shiftRows(outputMatrixInverted);
-    // mixColumns()
+    // _ = try subBytes(&outputMatrix);
+    // const outputMatrixInverted = try invertFourByFour(outputMatrix);
+    // _ = try shiftRows(outputMatrixInverted);
+    // _ = mixColumns(&outputMatrix);
     // addRoundKey()
 
     // round 10
@@ -169,10 +196,10 @@ fn aes128ecb(key: []const u8, input: []const u8) ![]const u8 {
     // shiftRows()
     // addRoundKey()
 
-    const outputMatrixInvertedBack = try invertFourByFour(outputMatrixInverted.*);
-    return try fourByFourToSixteen(outputMatrixInvertedBack.*);
+    // const outputMatrixInvertedBack = try invertFourByFour(outputMatrixInverted.*);
+    // return try fourByFourToSixteen(outputMatrixInvertedBack.*);
 
-    // return try fourByFourToSixteen(outputMatrixX);
+    return try fourByFourToSixteen(outputMatrix);
     // return try fourByFourToSixteen(inputMatrix);
 }
 
