@@ -28,9 +28,33 @@ const sBox = [16][16]u8{
     [_]u8{ '\x8c', '\xa1', '\x89', '\x0d', '\xbf', '\xe6', '\x42', '\x68', '\x41', '\x99', '\x2d', '\x0f', '\xb0', '\x54', '\xbb', '\x16' },
 };
 
-fn subBytes() void {}
-fn shiftRows() void {}
-fn mixColumns() void {}
+fn subBytes(input: *[4][4]u8) !void {
+    var y = try subWord(input[0][0..]);
+    for (input[0]) |_, i| input[0][i] = y[i];
+
+    y = try subWord(input[1][0..]);
+    for (input[1]) |_, i| input[1][i] = y[i];
+
+    y = try subWord(input[2][0..]);
+    for (input[2]) |_, i| input[2][i] = y[i];
+
+    y = try subWord(input[3][0..]);
+    for (input[3]) |_, i| input[3][i] = y[i];
+}
+
+fn shiftRows(input: *[4][4]u8) !void {
+    var y = try rotWord(input[1][0..]);
+    for (input[1]) |_, i| input[1][i] = y[i];
+
+    y = try rotWord(try (rotWord(input[2][0..])));
+    for (input[2]) |_, i| input[2][i] = y[i];
+
+    y = try rotWord(try rotWord(try rotWord(input[3][0..])));
+    for (input[3]) |_, i| input[3][i] = y[i];
+}
+
+fn mixColumns(input: *[4][4]u8) !void {}
+
 fn addRoundKey() void {}
 
 fn sixteenToFourByFour(input: []const u8) ![4][4]u8 {
@@ -46,7 +70,7 @@ fn fourByFourToSixteen(input: [4][4]u8) ![]u8 {
     return output;
 }
 
-fn invertFourByFour(input: *[4][4]u8) !*[4][4]u8 {
+fn invertFourByFour(input: [4][4]u8) !*[4][4]u8 {
     const output = try create([4][4]u8);
 
     for (input) |inputElement, iex| {
@@ -54,6 +78,7 @@ fn invertFourByFour(input: *[4][4]u8) !*[4][4]u8 {
             output[i][iex] = e;
         }
     }
+
     return output;
 }
 
@@ -124,13 +149,31 @@ fn aes128ecb(key: []const u8, input: []const u8) ![]const u8 {
     const expandedKey = try keyExpansion(key);
     const roundOneKeyMatrix = try sixteenToFourByFour(expandedKey[0..16]);
 
+    // initial round 0, addRoundKey
     for (inputMatrix) |inputElement, iex| {
         for (inputElement) |e, i| {
-            outputMatrixX[iex][i] = e ^ roundOneKeyMatrix[iex][i];
+            // outputMatrixX[iex][i] = e ^ roundOneKeyMatrix[iex][i];
+            outputMatrixX[iex][i] = e;
         }
     }
 
-    return try fourByFourToSixteen(outputMatrixX);
+    // round 1 - 9
+    _ = try subBytes(&outputMatrixX);
+    const outputMatrixInverted = try invertFourByFour(outputMatrixX);
+    _ = try shiftRows(outputMatrixInverted);
+    // mixColumns()
+    // addRoundKey()
+
+    // round 10
+    // subBytes()
+    // shiftRows()
+    // addRoundKey()
+
+    const outputMatrixInvertedBack = try invertFourByFour(outputMatrixInverted.*);
+    return try fourByFourToSixteen(outputMatrixInvertedBack.*);
+
+    // return try fourByFourToSixteen(outputMatrixX);
+    // return try fourByFourToSixteen(inputMatrix);
 }
 
 var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
