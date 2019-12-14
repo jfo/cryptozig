@@ -40,6 +40,16 @@ fn sixteenToFourByFour(input: []const u8) !*[4][4]u8 {
     return output;
 }
 
+fn fourByFourToSixteen(input: *[4][4]u8) ![]u8 {
+    const output = try create([16]u8);
+    for (input) |inputElement, iex| {
+        for (inputElement) |e, i| {
+            output[iex * i] = e;
+        }
+    }
+    return output;
+}
+
 fn invertFourByFour(input: *[4][4]u8) !*[4][4]u8 {
     const output = try create([4][4]u8);
 
@@ -94,10 +104,36 @@ fn keyExpansion(key: []const u8) ![]const u8 {
     return w;
 }
 
+fn gmul(x: u8, y: u8) u8 {
+    var p: u8 = 0;
+    var a = x;
+    var b = y;
+
+    var i: u8 = 0;
+    while (i < 8) : (i += 1) {
+        if (b & 1 == 1) p ^= a;
+        const aHighBitSet = (a & 128) == 128;
+        a = a << 1;
+        if (aHighBitSet) a ^= 0x1b;
+        b = b >> 1;
+    }
+    return p;
+}
+
 fn aes128ecb(key: []const u8, input: []const u8) ![]const u8 {
-    const output = try alloc(u8, input.len);
-    for (input) |e, i| output[i] = e;
-    return output;
+    const inputMatrix = try sixteenToFourByFour(input);
+    const outputMatrix = try create([4][4]u8);
+
+    const expandedKey = try keyExpansion(key);
+    const roundOneKeyMatrix = try invertFourByFour(try sixteenToFourByFour(expandedKey[0..16]));
+
+    for (inputMatrix) |inputElement, iex| {
+        for (inputElement) |e, i| {
+            outputMatrix[iex][i] = e ^ roundOneKeyMatrix[iex][i];
+        }
+    }
+
+    return try fourByFourToSixteen(outputMatrix);
 }
 
 var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
@@ -112,6 +148,8 @@ pub fn main() !void {
 
     const key: []const u8 = "YELLOW SUBMARINE";
     const input: []const u8 = "abcdefghijklmnop";
+    const output = try aes128ecb(key, input);
+    warn("{}", .{output});
 }
 
 test "key expansion" {
@@ -126,7 +164,7 @@ test "4 by 4" {
     const out = try sixteenToFourByFour(sample);
     const invertedOut = try invertFourByFour(out);
 
-    for (out) |e| warn("{}", e);
-    for (invertedOut) |e| warn("{}", e);
+    // for (out) |e| warn("{}", .{e});
+    // for (invertedOut) |e| warn("{}", .{e});
     // assert(std.mem.eql(u8, expected[0..], out));
 }
