@@ -33,20 +33,16 @@ fn shiftRows() void {}
 fn mixColumns() void {}
 fn addRoundKey() void {}
 
-fn sixteenToFourByFour(input: []const u8) !*[4][4]u8 {
+fn sixteenToFourByFour(input: []const u8) ![4][4]u8 {
     assert(input.len == 16);
     const output = try create([4][4]u8);
     for (input) |e, i| output[i / 4][i % 4] = e;
-    return output;
+    return output.*;
 }
 
-fn fourByFourToSixteen(input: *[4][4]u8) ![]u8 {
+fn fourByFourToSixteen(input: [4][4]u8) ![]u8 {
     const output = try create([16]u8);
-    for (input) |inputElement, iex| {
-        for (inputElement) |e, i| {
-            output[iex * i] = e;
-        }
-    }
+    for (output) |_, i| output[i] = input[i / 4][i % 4];
     return output;
 }
 
@@ -123,17 +119,18 @@ fn gmul(x: u8, y: u8) u8 {
 fn aes128ecb(key: []const u8, input: []const u8) ![]const u8 {
     const inputMatrix = try sixteenToFourByFour(input);
     const outputMatrix = try create([4][4]u8);
+    var outputMatrixX = outputMatrix.*;
 
     const expandedKey = try keyExpansion(key);
-    const roundOneKeyMatrix = try invertFourByFour(try sixteenToFourByFour(expandedKey[0..16]));
+    const roundOneKeyMatrix = try sixteenToFourByFour(expandedKey[0..16]);
 
     for (inputMatrix) |inputElement, iex| {
         for (inputElement) |e, i| {
-            outputMatrix[iex][i] = e ^ roundOneKeyMatrix[iex][i];
+            outputMatrixX[iex][i] = e ^ roundOneKeyMatrix[iex][i];
         }
     }
 
-    return try fourByFourToSixteen(outputMatrix);
+    return try fourByFourToSixteen(outputMatrixX);
 }
 
 var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
