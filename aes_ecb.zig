@@ -189,13 +189,24 @@ fn encryptBlock(key: []const u8, input: []const u8) ![]const u8 {
     return try fourByFourToSixteen(state);
 }
 
+fn decryptBlock(key: []const u8, input: []const u8) []const u8 {
+    return input;
+}
+
 var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
 const alloc = arena.allocator.alloc;
 const create = arena.allocator.create;
 
 pub fn main() !void {
     defer arena.deinit();
-    warn("{}", .{output});
+
+    const key: []const u8 = "YELLOW SUBMARINE";
+    const input: []const u8 = "abcdefghijklmnop";
+
+    const encrypted = try encryptBlock(key, input);
+    const decrypted = decryptBlock(key, encrypted);
+
+    warn("{}", .{decrypted});
 }
 
 test "key expansion" {
@@ -208,6 +219,14 @@ test "key expansion" {
 test "encrypt block" {
     const key: []const u8 = "YELLOW SUBMARINE";
     const input: []const u8 = "abcdefghijklmnop";
-    const output = try encryptBlock(key, input);
-    assert(std.mem.eql(u8, output, "\xbd\xb1\x84\xd4\x4e\x1f\xc1\xd3\x06\x09\x45\xb5\x3c\x99\x4f\x48"));
+    const encrypted = try encryptBlock(key, input);
+    assert(std.mem.eql(u8, encrypted, "\xbd\xb1\x84\xd4\x4e\x1f\xc1\xd3\x06\x09\x45\xb5\x3c\x99\x4f\x48"));
+}
+
+test "decrypt block" {
+    const key: []const u8 = "YELLOW SUBMARINE";
+    const input: []const u8 = "abcdefghijklmnop";
+    const encrypted = try encryptBlock(key, input);
+    const decrypted = try decryptBlock(key, encrypted);
+    assert(std.mem.eql(u8, output, "abcdefghijklmnop"));
 }
