@@ -1,6 +1,7 @@
 // https://www.brainkart.com/article/AES-Key-Expansion_8410/
 // https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197.pdf
 // https://www.samiam.org/key-schedule.html
+// https://www.nayuki.io/page/aes-cipher-internals-in-excel
 
 const std = @import("std");
 const warn = std.debug.warn;
