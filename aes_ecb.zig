@@ -29,11 +29,37 @@ const sBox = [16][16]u8{
     [_]u8{ '\x8c', '\xa1', '\x89', '\x0d', '\xbf', '\xe6', '\x42', '\x68', '\x41', '\x99', '\x2d', '\x0f', '\xb0', '\x54', '\xbb', '\x16' },
 };
 
+const sBoxInverse = [16][16]u8{
+    [_]u8{ '\x52', '\x09', '\x6a', '\xd5', '\x30', '\x36', '\xa5', '\x38', '\xbf', '\x40', '\xa3', '\x9e', '\x81', '\xf3', '\xd7', '\xfb' },
+    [_]u8{ '\x7c', '\xe3', '\x39', '\x82', '\x9b', '\x2f', '\xff', '\x87', '\x34', '\x8e', '\x43', '\x44', '\xc4', '\xde', '\xe9', '\xcb' },
+    [_]u8{ '\x54', '\x7b', '\x94', '\x32', '\xa6', '\xc2', '\x23', '\x3d', '\xee', '\x4c', '\x95', '\x0b', '\x42', '\xfa', '\xc3', '\x4e' },
+    [_]u8{ '\x08', '\x2e', '\xa1', '\x66', '\x28', '\xd9', '\x24', '\xb2', '\x76', '\x5b', '\xa2', '\x49', '\x6d', '\x8b', '\xd1', '\x25' },
+    [_]u8{ '\x72', '\xf8', '\xf6', '\x64', '\x86', '\x68', '\x98', '\x16', '\xd4', '\xa4', '\x5c', '\xcc', '\x5d', '\x65', '\xb6', '\x92' },
+    [_]u8{ '\x6c', '\x70', '\x48', '\x50', '\xfd', '\xed', '\xb9', '\xda', '\x5e', '\x15', '\x46', '\x57', '\xa7', '\x8d', '\x9d', '\x84' },
+    [_]u8{ '\x90', '\xd8', '\xab', '\x00', '\x8c', '\xbc', '\xd3', '\x0a', '\xf7', '\xe4', '\x58', '\x05', '\xb8', '\xb3', '\x45', '\x06' },
+    [_]u8{ '\xd0', '\x2c', '\x1e', '\x8f', '\xca', '\x3f', '\x0f', '\x02', '\xc1', '\xaf', '\xbd', '\x03', '\x01', '\x13', '\x8a', '\x6b' },
+    [_]u8{ '\x3a', '\x91', '\x11', '\x41', '\x4f', '\x67', '\xdc', '\xea', '\x97', '\xf2', '\xcf', '\xce', '\xf0', '\xb4', '\xe6', '\x73' },
+    [_]u8{ '\x96', '\xac', '\x74', '\x22', '\xe7', '\xad', '\x35', '\x85', '\xe2', '\xf9', '\x37', '\xe8', '\x1c', '\x75', '\xdf', '\x6e' },
+    [_]u8{ '\x47', '\xf1', '\x1a', '\x71', '\x1d', '\x29', '\xc5', '\x89', '\x6f', '\xb7', '\x62', '\x0e', '\xaa', '\x18', '\xbe', '\x1b' },
+    [_]u8{ '\xfc', '\x56', '\x3e', '\x4b', '\xc6', '\xd2', '\x79', '\x20', '\x9a', '\xdb', '\xc0', '\xfe', '\x78', '\xcd', '\x5a', '\xf4' },
+    [_]u8{ '\x1f', '\xdd', '\xa8', '\x33', '\x88', '\x07', '\xc7', '\x31', '\xb1', '\x12', '\x10', '\x59', '\x27', '\x80', '\xec', '\x5f' },
+    [_]u8{ '\x60', '\x51', '\x7f', '\xa9', '\x19', '\xb5', '\x4a', '\x0d', '\x2d', '\xe5', '\x7a', '\x9f', '\x93', '\xc9', '\x9c', '\xef' },
+    [_]u8{ '\xa0', '\xe0', '\x3b', '\x4d', '\xae', '\x2a', '\xf5', '\xb0', '\xc8', '\xeb', '\xbb', '\x3c', '\x83', '\x53', '\x99', '\x61' },
+    [_]u8{ '\x17', '\x2b', '\x04', '\x7e', '\xba', '\x77', '\xd6', '\x26', '\xe1', '\x69', '\x14', '\x63', '\x55', '\x21', '\x0c', '\x7d' },
+};
+
 fn subBytes(input: *[4][4]u8) void {
     subWord(input[0][0..]);
     subWord(input[1][0..]);
     subWord(input[2][0..]);
     subWord(input[3][0..]);
+}
+
+fn subBytesInverse(input: *[4][4]u8) void {
+    subWordInverse(input[0][0..]);
+    subWordInverse(input[1][0..]);
+    subWordInverse(input[2][0..]);
+    subWordInverse(input[3][0..]);
 }
 
 fn shiftRows(input: *[4][4]u8) void {
@@ -123,6 +149,12 @@ fn subWord(word: []u8) void {
     }
 }
 
+fn subWordInverse(word: []u8) void {
+    for (word) |w, i| {
+        word[i] = sBoxInverse[(w & 240) >> 4][w & 15];
+    }
+}
+
 fn keyExpansion(key: []const u8) ![]u8 {
     const w = try alloc(u8, 176);
     for (key) |e, i| w[i] = e;
@@ -189,8 +221,19 @@ fn encryptBlock(key: []const u8, input: []const u8) ![]const u8 {
     return try fourByFourToSixteen(state);
 }
 
-fn decryptBlock(key: []const u8, input: []const u8) []const u8 {
-    return input;
+fn decryptBlock(key: []const u8, input: []const u8) ![]const u8 {
+    const expandedKey = try keyExpansion(key);
+    const state = try sixteenToFourByFour(input[0..]);
+
+    // round 10 in reverse
+    var roundKey = try sixteenToFourByFour(expandedKey[expandedKey.len - 16 .. expandedKey.len]);
+    addRoundKey(state, roundKey);
+    shiftRows(state);
+    shiftRows(state);
+    shiftRows(state);
+    subBytesInverse(state);
+
+    return try fourByFourToSixteen(state);
 }
 
 var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
@@ -204,7 +247,7 @@ pub fn main() !void {
     const input: []const u8 = "abcdefghijklmnop";
 
     const encrypted = try encryptBlock(key, input);
-    const decrypted = decryptBlock(key, encrypted);
+    const decrypted = try decryptBlock(key, encrypted);
 
     warn("{}", .{decrypted});
 }
