@@ -28,29 +28,17 @@ const sBox = [16][16]u8{
     [_]u8{ '\x8c', '\xa1', '\x89', '\x0d', '\xbf', '\xe6', '\x42', '\x68', '\x41', '\x99', '\x2d', '\x0f', '\xb0', '\x54', '\xbb', '\x16' },
 };
 
-fn subBytes(input: *[4][4]u8) !void {
-    var y = try subWord(input[0][0..]);
-    for (input[0]) |_, i| input[0][i] = y[i];
-
-    y = try subWord(input[1][0..]);
-    for (input[1]) |_, i| input[1][i] = y[i];
-
-    y = try subWord(input[2][0..]);
-    for (input[2]) |_, i| input[2][i] = y[i];
-
-    y = try subWord(input[3][0..]);
-    for (input[3]) |_, i| input[3][i] = y[i];
+fn subBytes(input: *[4][4]u8) void {
+    subWord(input[0][0..]);
+    subWord(input[1][0..]);
+    subWord(input[2][0..]);
+    subWord(input[3][0..]);
 }
 
-fn shiftRows(input: *[4][4]u8) !void {
-    var y = try rotWord(input[1][0..]);
-    for (input[1]) |_, i| input[1][i] = y[i];
-
-    y = try rotWord(try (rotWord(input[2][0..])));
-    for (input[2]) |_, i| input[2][i] = y[i];
-
-    y = try rotWord(try rotWord(try rotWord(input[3][0..])));
-    for (input[3]) |_, i| input[3][i] = y[i];
+fn shiftRows(input: *[4][4]u8) void {
+    _ = rotWord(input[1][0..]);
+    _ = rotWord(rotWord(input[2][0..]));
+    _ = rotWord(rotWord(rotWord(input[3][0..])));
 }
 
 fn mixColumn(r: *[4]u8) void {
@@ -68,11 +56,21 @@ fn mixColumn(r: *[4]u8) void {
     r[3] = b[3] ^ a[2] ^ a[1] ^ b[0] ^ a[0];
 }
 
-fn mixColumns(input: *[4][4]u8) void {
-    mixColumn(&input[0]);
-    mixColumn(&input[1]);
-    mixColumn(&input[2]);
-    mixColumn(&input[3]);
+fn mixColumns(input: *[4][4]u8) !void {
+    var temp = try invertFourByFour(input.*);
+
+    mixColumn(&temp[0]);
+    mixColumn(&temp[1]);
+    mixColumn(&temp[2]);
+    mixColumn(&temp[3]);
+
+    temp = try invertFourByFour(temp.*);
+
+    for (temp) |el, idx| {
+        for (el) |e, i| {
+            input[idx][i] = e;
+        }
+    }
 }
 
 fn addRoundKey(input: *[4][4]u8, roundKeyMatrix: *const [4][4]u8) void {
@@ -83,16 +81,16 @@ fn addRoundKey(input: *[4][4]u8, roundKeyMatrix: *const [4][4]u8) void {
     }
 }
 
-fn sixteenToFourByFour(input: []const u8) ![4][4]u8 {
+fn sixteenToFourByFour(input: []const u8) !*[4][4]u8 {
     assert(input.len == 16);
     const output = try create([4][4]u8);
-    for (input) |e, i| output[i / 4][i % 4] = e;
-    return output.*;
+    for (input) |e, i| output[i % 4][i / 4] = e;
+    return output;
 }
 
-fn fourByFourToSixteen(input: [4][4]u8) ![]u8 {
+fn fourByFourToSixteen(input: *[4][4]u8) ![]u8 {
     const output = try create([16]u8);
-    for (output) |_, i| output[i] = input[i / 4][i % 4];
+    for (output) |_, i| output[i] = input[i % 4][i / 4];
     return output;
 }
 
@@ -108,37 +106,33 @@ fn invertFourByFour(input: [4][4]u8) !*[4][4]u8 {
     return output;
 }
 
-fn rotWord(word: []u8) ![]u8 {
-    var out = try alloc(u8, 4);
-    for (word) |b, i| out[i] = b;
-    const temp = out[0];
-    out[0] = out[1];
-    out[1] = out[2];
-    out[2] = out[3];
-    out[3] = temp;
+fn rotWord(word: []u8) []u8 {
+    const temp = word[0];
+    word[0] = word[1];
+    word[1] = word[2];
+    word[2] = word[3];
+    word[3] = temp;
 
-    return out[0..];
+    return word;
 }
 
-fn subWord(word: []u8) ![]u8 {
-    var out = try alloc(u8, 4);
-
+fn subWord(word: []u8) void {
     for (word) |w, i| {
-        out[i] = sBox[(w & 240) >> 4][w & 15];
+        word[i] = sBox[(w & 240) >> 4][w & 15];
     }
-
-    return out;
 }
 
-fn keyExpansion(key: []const u8) ![]const u8 {
+fn keyExpansion(key: []const u8) ![]u8 {
     const w = try alloc(u8, 176);
     for (key) |e, i| w[i] = e;
 
     var i: u16 = 16;
     while (i < 176) : (i += 4) {
-        var temp = w[i - 4 .. i];
+        var temp = try create([4]u8);
+        for (w[i - 4 .. i]) |e, idx| temp[idx] = e;
         if (i % 16 == 0) {
-            temp = try subWord(try rotWord(temp));
+            _ = rotWord(temp);
+            subWord(temp);
             temp[0] ^= roundConstant[i / 16 - 1];
         }
 
@@ -168,46 +162,30 @@ fn gmul(x: u8, y: u8) u8 {
 }
 
 fn aes128ecb(key: []const u8, input: []const u8) ![]const u8 {
-    const inputMatrix = try sixteenToFourByFour(input);
-    var outputMatrix = try create([4][4]u8);
-
     const expandedKey = try keyExpansion(key);
-
-    for (inputMatrix) |inputElement, iex| {
-        for (inputElement) |e, i| {
-            outputMatrix[iex][i] = e;
-        }
-    }
+    const state = try sixteenToFourByFour(input[0..]);
 
     // initial round 0, addRoundKey
     var roundKey = try sixteenToFourByFour(expandedKey[0..16]);
-    addRoundKey(outputMatrix, &roundKey);
-
-    var outputMatrixInverted = try invertFourByFour(outputMatrix.*);
+    addRoundKey(state, roundKey);
 
     // round 1 - 9
     var i: u32 = 1;
     while (i < 10) : (i += 1) {
-        _ = try subBytes(outputMatrixInverted);
-        _ = try shiftRows(outputMatrixInverted);
-        mixColumns(outputMatrixInverted);
-
-        outputMatrix = try invertFourByFour(outputMatrixInverted.*);
+        subBytes(state);
+        shiftRows(state);
+        _ = try mixColumns(state);
         roundKey = try sixteenToFourByFour(expandedKey[16 * i .. 16 * i + 16]);
-        addRoundKey(outputMatrix, &roundKey);
-        outputMatrixInverted = try invertFourByFour(outputMatrix.*);
+        addRoundKey(state, roundKey);
     }
 
-    // // round 10
-    _ = try subBytes(outputMatrixInverted);
-    _ = try shiftRows(outputMatrixInverted);
-
-    outputMatrix = try invertFourByFour(outputMatrixInverted.*);
-
+    // round 10
+    subBytes(state);
+    shiftRows(state);
     roundKey = try sixteenToFourByFour(expandedKey[expandedKey.len - 16 .. expandedKey.len]);
-    addRoundKey(outputMatrix, &roundKey);
+    addRoundKey(state, roundKey);
 
-    return try fourByFourToSixteen(outputMatrix.*);
+    return try fourByFourToSixteen(state);
 }
 
 var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
@@ -216,13 +194,8 @@ const create = arena.allocator.create;
 
 pub fn main() !void {
     defer arena.deinit();
-
-    // var buf: [64000]u8 = undefined;
-    // const input = try read(buf[0..], "datafiles/7stripped.txt");
-
     const key: []const u8 = "YELLOW SUBMARINE";
     const input: []const u8 = "abcdefghijklmnop";
-
     const output = try aes128ecb(key, input);
     warn("{}", .{output});
 }
