@@ -83,6 +83,20 @@ fn mixColumn(r: *[4]u8) void {
     r[3] = b[3] ^ a[2] ^ a[1] ^ b[0] ^ a[0];
 }
 
+fn mixColumnReverse(r: *[4]u8) void {
+    var a: [4]u8 = undefined;
+    var b: [4]u8 = undefined;
+
+    var c: u8 = 0;
+    while (c < 4) : (c += 1) {
+        a[c] = r[c];
+    }
+    r[0] = gmul(a[0], 14) ^ gmul(a[3], 9) ^ gmul(a[2], 13) ^ gmul(a[1], 11);
+    r[1] = gmul(a[1], 14) ^ gmul(a[0], 9) ^ gmul(a[3], 13) ^ gmul(a[2], 11);
+    r[2] = gmul(a[2], 14) ^ gmul(a[1], 9) ^ gmul(a[0], 13) ^ gmul(a[3], 11);
+    r[3] = gmul(a[3], 14) ^ gmul(a[2], 9) ^ gmul(a[1], 13) ^ gmul(a[0], 11);
+}
+
 fn mixColumns(input: *[4][4]u8) !void {
     var temp = try invertFourByFour(input.*);
 
@@ -90,6 +104,23 @@ fn mixColumns(input: *[4][4]u8) !void {
     mixColumn(&temp[1]);
     mixColumn(&temp[2]);
     mixColumn(&temp[3]);
+
+    temp = try invertFourByFour(temp.*);
+
+    for (temp) |el, idx| {
+        for (el) |e, i| {
+            input[idx][i] = e;
+        }
+    }
+}
+
+fn mixColumnsReverse(input: *[4][4]u8) !void {
+    var temp = try invertFourByFour(input.*);
+
+    mixColumnReverse(&temp[0]);
+    mixColumnReverse(&temp[1]);
+    mixColumnReverse(&temp[2]);
+    mixColumnReverse(&temp[3]);
 
     temp = try invertFourByFour(temp.*);
 
@@ -232,6 +263,20 @@ fn decryptBlock(key: []const u8, input: []const u8) ![]const u8 {
     shiftRows(state);
     shiftRows(state);
     subBytesInverse(state);
+
+    var i: u8 = 10;
+    while (i > 1) : (i -= 1) {
+        roundKey = try sixteenToFourByFour(expandedKey[16 * (i - 1) .. 16 * (i - 1) + 16]);
+        addRoundKey(state, roundKey);
+        _ = try mixColumnsReverse(state);
+        shiftRows(state);
+        shiftRows(state);
+        shiftRows(state);
+        subBytesInverse(state);
+    }
+
+    roundKey = try sixteenToFourByFour(expandedKey[0..16]);
+    addRoundKey(state, roundKey);
 
     return try fourByFourToSixteen(state);
 }
