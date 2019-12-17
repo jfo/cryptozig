@@ -287,14 +287,7 @@ const create = arena.allocator.create;
 
 pub fn main() !void {
     defer arena.deinit();
-
     const key: []const u8 = "YELLOW SUBMARINE";
-    const input: []const u8 = "abcdefghijklmnop";
-
-    const encrypted = try encryptBlock(key, input);
-    const decrypted = try decryptBlock(key, encrypted);
-
-    warn("{}", .{decrypted});
 }
 
 test "key expansion" {
@@ -316,5 +309,5 @@ test "decrypt block" {
     const input: []const u8 = "abcdefghijklmnop";
     const encrypted = try encryptBlock(key, input);
     const decrypted = try decryptBlock(key, encrypted);
-    assert(std.mem.eql(u8, output, "abcdefghijklmnop"));
+    assert(std.mem.eql(u8, decrypted, "abcdefghijklmnop"));
 }
