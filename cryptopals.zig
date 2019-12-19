@@ -4,10 +4,6 @@ const mem = @import("std").mem;
 
 // none of this is in any way done or intended beyond my own debuggery use.
 pub fn read_file_into_buf(buf: []u8, filename: []const u8) ![]u8 {
-    // // open the source file
-    var allocbuf: [100 * 1024]u8 = undefined;
-    const allocator = &std.heap.FixedBufferAllocator.init(&allocbuf).allocator;
-
     var file = try std.fs.File.openRead(filename);
     defer file.close();
 

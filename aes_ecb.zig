@@ -6,6 +6,7 @@
 const std = @import("std");
 const warn = std.debug.warn;
 const assert = std.debug.assert;
+const base64 = std.base64;
 const read = @import("./cryptopals.zig").read_file_into_buf;
 
 const roundConstant = [_]u8{ '\x01', '\x02', '\x04', '\x08', '\x10', '\x20', '\x40', '\x80', '\x1B', '\x36' };
@@ -233,7 +234,7 @@ fn encryptBlock(key: []const u8, input: []const u8) ![]const u8 {
     var roundKey = try sixteenToFourByFour(expandedKey[0..16]);
     addRoundKey(state, roundKey);
 
-    // round 1 - 9
+    // // round 1 - 9
     var i: u32 = 1;
     while (i < 10) : (i += 1) {
         subBytes(state);
@@ -281,6 +282,8 @@ fn decryptBlock(key: []const u8, input: []const u8) ![]const u8 {
     return try fourByFourToSixteen(state);
 }
 
+fn decrypt(key: []const u8, input: []const u8) ![]const u8 {}
+
 var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
 const alloc = arena.allocator.alloc;
 const create = arena.allocator.create;
@@ -288,6 +291,23 @@ const create = arena.allocator.create;
 pub fn main() !void {
     defer arena.deinit();
     const key: []const u8 = "YELLOW SUBMARINE";
+    var buf: [100 * 1025]u8 = undefined;
+
+    const input = try read(buf[0..], "./datafiles/7stripped.txt");
+    var decoded_buf: [5000]u8 = undefined;
+
+    const decoder = base64.standard_decoder_unsafe;
+    const size = decoder.calcSize(input);
+    _ = decoder.decode(decoded_buf[0..size], input);
+
+    var decryptedbuf: [5000]u8 = undefined;
+    var i: u32 = 0;
+    while (i < 3000) : (i += 16) {
+        var d = try decryptBlock(key, decoded_buf[i .. i + 16]);
+        for (d) |e, id| decryptedbuf[i + id] = e;
+    }
+
+    warn("{}\n", .{decryptedbuf});
 }
 
 test "key expansion" {
