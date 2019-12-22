@@ -7,6 +7,8 @@ const std = @import("std");
 const warn = std.debug.warn;
 const assert = std.debug.assert;
 const base64 = std.base64;
+
+// TODO: move to general utils
 const read = @import("./cryptopals.zig").read_file_into_buf;
 
 const roundConstant = [_]u8{ '\x01', '\x02', '\x04', '\x08', '\x10', '\x20', '\x40', '\x80', '\x1B', '\x36' };
@@ -282,12 +284,12 @@ fn decryptBlock(key: []const u8, input: []const u8) ![]const u8 {
     return try fourByFourToSixteen(state);
 }
 
-fn decrypt(key: []const u8, input: []const u8) ![]const u8 {}
-
 var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
 const alloc = arena.allocator.alloc;
 const create = arena.allocator.create;
 
+// TODO: move into `decrypt` function, handling arbitrary length input with
+// proper padding (whatever that is)
 pub fn main() !void {
     defer arena.deinit();
     const key: []const u8 = "YELLOW SUBMARINE";
