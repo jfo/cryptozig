@@ -24,19 +24,19 @@ test "Convert hex to base64" {
 
 test "Fixed XOR" {
     const src = "1c0111001f010100061a024b53535009181c";
-    const src2 = "686974207468652062756c6c277320657965";
+    // const src2 = "686974207468652062756c6c277320657965";
 
-    const expected_output_str = "746865206b696420646f6e277420706c6179";
+    // const expected_output_str = "746865206b696420646f6e277420706c6179";
     const expected_output_raw = "the kid don't play";
 
     var hexed: [src.len / 2]u8 = undefined;
-    const output_raw = cp.hexDigits(hexed[0..], src[0..]);
+    // const output_raw = cp.hexDigits(hexed[0..], src[0..]);
 
     var hexed2: [hexed.len]u8 = undefined;
-    const output_raw2 = cp.hexDigits(hexed2[0..], src2[0..]);
+    // const output_raw2 = cp.hexDigits(hexed2[0..], src2[0..]);
 
-    var hexed3: [hexed.len]u8 = undefined;
-    const exp = cp.hexDigits(hexed3[0..], expected_output_str[0..]);
+    // var hexed3: [hexed.len]u8 = undefined;
+    // const exp = cp.hexDigits(hexed3[0..], expected_output_str[0..]);
 
     var dest: [hexed.len]u8 = undefined;
     const out = cp.fixed_xor(dest[0..], hexed[0..], hexed2[0..]);
@@ -48,15 +48,15 @@ test "Single-byte XOR cipher" {
     const src = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
     const expected_output = "Cooking MC's like a pound of bacon";
 
-    var hexed: [src.len / 2]u8 = undefined;
-    const src_raw = cp.hexDigits(hexed[0..], src[0..]);
+    // var hexed: [src.len / 2]u8 = undefined;
+    // const src_raw = cp.hexDigits(hexed[0..], src[0..]);
 
     var i: u8 = 0;
     var winner: [src.len / 2]u8 = undefined;
     var dest: [src.len / 2]u8 = undefined;
 
     while (i < std.math.maxInt(u8)) {
-        var out_xor = cp.one_char_xor(dest[0..], src_raw, i);
+        // var out_xor = cp.one_char_xor(dest[0..], src_raw, i);
         i += 1;
         if (cp.scorer(dest) > cp.scorer(winner)) {
             mem.copy(u8, winner[0..], dest[0..]);
@@ -70,8 +70,8 @@ test "Single-byte XOR cipher" {
 test "Detect single-character XOR" {
     const expected_output = "Now that the party is jumping";
 
-    var allocbuf: [10 * 1024]u8 = undefined;
-    const allocator = &std.heap.FixedBufferAllocator.init(&allocbuf).allocator;
+    // var allocbuf: [10 * 1024]u8 = undefined;
+    // const allocator = &std.heap.FixedBufferAllocator.init(&allocbuf).allocator;
 
     var file = try std.fs.File.openRead("datafiles/4.txt");
     defer file.close();
@@ -137,6 +137,6 @@ test "Break repeating-key XOR" {
     _ = decoder.decode(decoded_buf[0..size], input);
 
     var dest: [5000]u8 = undefined;
-    const decrypted = cp.break_repeating_key_xor(dest[0..], decoded_buf[0..size]);
+    // const decrypted = cp.break_repeating_key_xor(dest[0..], decoded_buf[0..size]);
     warn("{}", dest);
 }

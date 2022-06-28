@@ -4,7 +4,7 @@
 // https://www.nayuki.io/page/aes-cipher-internals-in-excel
 
 const std = @import("std");
-const warn = std.debug.warn;
+const warn = std.debug.print;
 const assert = std.debug.assert;
 const base64 = std.base64;
 
@@ -88,7 +88,6 @@ fn mixColumn(r: *[4]u8) void {
 
 fn mixColumnReverse(r: *[4]u8) void {
     var a: [4]u8 = undefined;
-    var b: [4]u8 = undefined;
 
     var c: u8 = 0;
     while (c < 4) : (c += 1) {
@@ -285,8 +284,8 @@ fn decryptBlock(key: []const u8, input: []const u8) ![]const u8 {
 }
 
 var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-const alloc = arena.allocator.alloc;
-const create = arena.allocator.create;
+const alloc = arena.allocator().alloc;
+const create = arena.allocator().create;
 
 // TODO: move into `decrypt` function, handling arbitrary length input with
 // proper padding (whatever that is)
@@ -295,12 +294,13 @@ pub fn main() !void {
     const key: []const u8 = "YELLOW SUBMARINE";
     var buf: [100 * 1025]u8 = undefined;
 
-    const input = try read(buf[0..], "./datafiles/7stripped.txt");
+    const input = try read(buf[0..], "/Volumes/InternalNVME/jeff/code/cryptozig/datafiles/7stripped.txt");
+
     var decoded_buf: [5000]u8 = undefined;
 
-    const decoder = base64.standard_decoder_unsafe;
-    const size = decoder.calcSize(input);
-    _ = decoder.decode(decoded_buf[0..size], input);
+    const decoder = base64.standard.Decoder;
+    const size = try decoder.calcSizeForSlice(input);
+    _ = try decoder.decode(decoded_buf[0..size], input);
 
     var decryptedbuf: [5000]u8 = undefined;
     var i: u32 = 0;
@@ -309,7 +309,7 @@ pub fn main() !void {
         for (d) |e, id| decryptedbuf[i + id] = e;
     }
 
-    warn("{}\n", .{decryptedbuf});
+    warn("{any}\n", .{decryptedbuf});
 }
 
 test "key expansion" {

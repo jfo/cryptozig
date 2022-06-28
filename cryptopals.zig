@@ -1,10 +1,10 @@
 const std = @import("std");
-const warn = @import("std").debug.warn;
+const warn = @import("std").debug.print;
 const mem = @import("std").mem;
 
 // none of this is in any way done or intended beyond my own debuggery use.
 pub fn read_file_into_buf(buf: []u8, filename: []const u8) ![]u8 {
-    var file = try std.fs.File.openRead(filename);
+    var file = try std.fs.openFileAbsolute(filename, .{ .read = true });
     defer file.close();
 
     const filesize: usize = try file.getEndPos();
@@ -189,8 +189,6 @@ pub fn break_into_chunks(dest: [][]u8, src: []u8, chunksize: usize) [][]u8 {
 }
 
 pub fn transpose_blocks(dest: []u8, src: [][]const u8, keysize: u8) []u8 {
-    var out: [][]u8 = undefined;
-
     var i: u32 = 0;
     var id: u32 = 0;
 
