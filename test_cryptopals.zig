@@ -13,9 +13,9 @@ test "Convert hex to base64" {
     var dest: [src.len]u8 = undefined;
     const output_raw = cp.hexDigits(dest[0..], src[0..]);
 
-    const encoder = base64.standard_encoder;
+    const encoder = base64.standard.Encoder;
     var buffer: [5000]u8 = undefined;
-    var encoded = buffer[0..base64.Base64Encoder.calcSize(output_raw.len)];
+    var encoded = buffer[0..encoder.calcSize(output_raw.len)];
     _ = encoder.encode(encoded, output_raw[0..output_raw.len]);
 
     assert(mem.eql(u8, expected_output_raw, output_raw));
