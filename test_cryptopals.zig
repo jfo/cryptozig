@@ -41,7 +41,7 @@ test "Fixed XOR" {
     var dest: [hexed.len]u8 = undefined;
     const out = cp.fixed_xor(dest[0..], hexed[0..], hexed2[0..]);
 
-    assert(mem.eql(u8, expected_output_raw, out));
+    try std.testing.expect(mem.eql(u8, expected_output_raw, out));
 }
 
 test "Single-byte XOR cipher" {
